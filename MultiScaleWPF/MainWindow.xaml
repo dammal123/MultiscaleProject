@@ -1,0 +1,93 @@
+﻿<Window x:Class="MultiScaleWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MultiScaleWPF"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+
+            <RowDefinition Height="Auto"/>
+            <!-- Menu here -->
+
+            <RowDefinition Height="*"/>
+            <!-- Content here - occupies all remaining space -->
+
+            <RowDefinition Height="Auto"/>
+            <!-- Status here -->
+
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0">
+            <MenuItem Header="File">
+                <MenuItem Name="Import" Header="Import">
+                    <MenuItem Name="txt_import" Header="txt" Click="txtImport_Click"/>
+                    <Separator/>
+                    <MenuItem Name="bitmap_import" Header="bitmap" Click="bitmapImport_Click"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Name="Export" Header="Export">
+                    <MenuItem Name="txt_export" Header="txt" Click="txtExport_Click"/>
+                    <Separator/>
+                    <MenuItem Name="bitmap_export" Header="bitmap" Click="bitmapExport_Click"/>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+
+        <Grid Grid.Row="1">
+            <!-- Content -->
+
+            <Grid.ColumnDefinitions>
+
+                <ColumnDefinition Width="Auto" MinWidth="131"/>
+                <!-- Panel -->
+
+                <ColumnDefinition/>
+                <!-- Canvas here - occupies all remaining space -->
+
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                <Label x:Name="label5" Content="Szerokość okna" HorizontalAlignment="Center"/>
+                <TextBox x:Name="widthTextBox" Text="300" TextAlignment="Center" TextWrapping="Wrap" Width="50" TextChanged="widthTextBox_TextChanged"/>
+                <Label x:Name="label4" Content="Wysokość okna" HorizontalAlignment="Center"/>
+                <TextBox x:Name="heightTextBox" Text="300" TextAlignment="Center" TextWrapping="Wrap" Width="50" TextChanged="heightTextBox_TextChanged"/>
+                <Label x:Name="label" Content="Number of grains"  HorizontalAlignment="Center"/>
+                <TextBox x:Name="numberGrainsTextBox" TextChanged="numberGrainsTextBox_TextChanged" Text="5" TextAlignment="Center" TextWrapping="Wrap" Width="50" HorizontalAlignment="Center"/>
+                <Separator/>
+                <Label x:Name="label1" Content="Inclusion diameter"  HorizontalAlignment="Center"/>
+                <TextBox x:Name="inclusionDiameterTextBox" Text="2" TextChanged="inclusionDiameterTextBox_TextChanged" TextAlignment="Center" TextWrapping="Wrap" Width="50"  HorizontalAlignment="Center"/>
+                <Separator/>
+                <StackPanel HorizontalAlignment="Center">
+                    <Label x:Name="label2" Content="Neighbourhood type"  HorizontalAlignment="Center"/>
+                    <RadioButton x:Name="NeumanButton" Content="von Neuman" IsChecked="True" Checked="NeumanButton_Checked"/>
+                    <RadioButton x:Name="MooreButton" Content="Moore"  HorizontalAlignment="Left" Checked="MooreButton_Checked"/>
+                </StackPanel>
+                <Separator/>
+                <StackPanel HorizontalAlignment="Center">
+                    <Label x:Name="label3" Content="Boundary conditions"  HorizontalAlignment="Center"/>
+                    <RadioButton x:Name="absorbingButton" Content="Absorbing" IsChecked="True"  Checked="absorbingButton_Checked"  HorizontalAlignment="Left"/>
+                    <RadioButton x:Name="periodicButton" Content="Periodic"  HorizontalAlignment="Left" Checked="periodicButton_Checked"/>
+                </StackPanel>
+                <Separator/>
+                <Button x:Name="startButton" Content="Start" Width="50" HorizontalAlignment="Center" Click="startButton_Click"/>
+                <Button x:Name="stopButton" Content="Stop" Width="50" HorizontalAlignment="Center" Click="stopButton_Click"/>
+                <Button x:Name="resetButton" Content="Reset" Width="50" HorizontalAlignment="Center" Click="resetButton_Click"/>
+            </StackPanel>
+
+            <Canvas Name="PaintSurface" MouseDown="Canvas_MouseDown_1" Grid.Column="1">
+                <Canvas.Background>
+                    <SolidColorBrush Color="White" Opacity="0"/>
+                </Canvas.Background>
+                <Image x:Name="image" />
+            </Canvas>
+
+        </Grid>
+
+        <StatusBar Grid.Row="2">
+
+        </StatusBar>
+    </Grid>
+</Window>
