@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace MultiScaleWPF
 {
@@ -22,6 +24,8 @@ namespace MultiScaleWPF
     {
         Point currentPoint = new Point();
         MainFile mainFile;
+        Task task;
+        CancellationTokenSource wtoken;
 
         public MainWindow()
         {
@@ -113,18 +117,31 @@ namespace MultiScaleWPF
 
         private void startButton_Click(object sender, RoutedEventArgs e)
         {
-            //if(!mainFile.startFlag)
-              //  mainFile = new MainFile();
-            
-            mainFile.AppWorkflow();
-            mainFile.startFlag = true;
+            wtoken = new CancellationTokenSource();
 
-            image.Source = DrawImage(mainFile.testArray);
+            task = Task.Run(async () =>  // <- marked async
+            {
+                while (true)
+                {
+                    mainFile.AppWorkflow();
+                    mainFile.startFlag = true;
+                    Dispatcher.Invoke(new Action(() => {
 
+                        image.Source = DrawImage(mainFile.testArray);
+
+                    }), DispatcherPriority.ContextIdle);
+                    if (mainFile.stopFlag)
+                    {
+                        StopMethod();
+                        mainFile = new MainFile();
+                    }
+                        await Task.Delay(100, wtoken.Token); // <- await with cancellation
+                }
+            }, wtoken.Token);
         }
         private void stopButton_Click(object sender, RoutedEventArgs e)
         {
-            mainFile.stopFlag = true;
+            StopMethod();
         }
         private void resetButton_Click(object sender, RoutedEventArgs e)
         {
@@ -211,6 +228,22 @@ namespace MultiScaleWPF
             writableImg.Unlock();
 
             return writableImg;
+        }
+        private void StopMethod()
+        {
+            // CancellationTokenSource implements IDisposable.
+            using (wtoken)
+            {
+                // Cancel.  This will cancel the task.
+                wtoken.Cancel();
+            }
+
+            // Set everything to null, since the references
+            // are on the class level and keeping them around
+            // is holding onto invalid state.
+            wtoken = null;
+            task = null;
+            mainFile.stopFlag = false;
         }
     }
 }

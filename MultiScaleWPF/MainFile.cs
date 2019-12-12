@@ -22,7 +22,7 @@ namespace MultiScaleWPF
         public bool stopFlag { get; set; }
 
         public Cell[,] cellArray;
-        private Cell[,] cellArrayNextStep;
+       // private Cell[,] cellArrayNextStep;
         //private List<Color> colorList;
         public Int32[,] testArray; //= new Int32[,];
 
@@ -68,7 +68,7 @@ namespace MultiScaleWPF
             borderWidthPx = 5;
             startFlag = false;
             cellArray = new Cell[windowWidth, windowHeight];
-            cellArrayNextStep = new Cell[windowWidth, windowHeight];
+           // cellArrayNextStep = new Cell[windowWidth, windowHeight];
             boundaryCondition = BoundaryCondition.absorbing;
 
             testArray = new Int32[windowWidth, windowHeight];
@@ -93,16 +93,16 @@ namespace MultiScaleWPF
             }
 
             ///obsolete
-            for (int i = 0; i < windowWidth; i++)
-            {
-                for (int j = 0; j < windowHeight; j++)
-                {
-                    if (startFlag && cellArrayNextStep[i, j].cellState == Cell.CellState.Inclusion)
-                        continue;
-                    cellArrayNextStep[i, j] = new Cell();
-                    cellArrayNextStep[i, j].cellId = i + j * windowWidth;
-                }
-            }
+            //for (int i = 0; i < windowWidth; i++)
+            //{
+            //    for (int j = 0; j < windowHeight; j++)
+            //    {
+            //        if (startFlag && cellArrayNextStep[i, j].cellState == Cell.CellState.Inclusion)
+            //            continue;
+            //        cellArrayNextStep[i, j] = new Cell();
+            //        cellArrayNextStep[i, j].cellId = i + j * windowWidth;
+            //    }
+            //}
             ///
             neighbourhoodType = NeighbourhoodType.vonNeuman;
             energyType = EnergyType.heterogenous;
@@ -142,9 +142,9 @@ namespace MultiScaleWPF
                         cellArray[x, y].cellColor = getCellIdColorFromDictionary(i);
                         cellArray[x, y].cellState = Cell.CellState.Grain;
 
-                        cellArrayNextStep[x, y].cellColorId = i;
-                        cellArrayNextStep[x, y].cellColor = getCellIdColorFromDictionary(i);
-                        cellArrayNextStep[x, y].cellState = Cell.CellState.Grain;
+                        //cellArrayNextStep[x, y].cellColorId = i;
+                        //cellArrayNextStep[x, y].cellColor = getCellIdColorFromDictionary(i);
+                        //cellArrayNextStep[x, y].cellState = Cell.CellState.Grain;
                         break;
                     }
                 }
@@ -170,22 +170,28 @@ namespace MultiScaleWPF
                     }
                 }
             }
+            if(testnum == windowWidth*windowHeight)
+            {
+                stopFlag = true;
+            }
         }
 
         public void AppWorkflow()
         {
-            //if(startFlag == false)
-            generateGrains();
+            int step = 0;
+            if (startFlag == false)
+                generateGrains();
           //  RewriteArray();
             //thread tutaj 
-            int step = 0;
-            //while (step < 50)
-            //{
+            while (step < 10)
+            {
 
             //CREATE TWO TABLES AND REWRITE VALUES FROM ONE TO ANOTHER AND THEN IT WILL WORK BUT NOW THEY ARE THE SAME
                 FindNeighbour();
+                CleanLastColors();
                 step++;
-            //}
+            }
+
            // RewriteNextStepArray();
 
             RecreateIntArray();
@@ -195,25 +201,15 @@ namespace MultiScaleWPF
             //next to think reset stop export import + GUI
         }
 
-        //do czego??
-        private void RewriteArray()
+        public void CleanLastColors()
         {
-            //if(startFlag)
-            //{
-                cellArrayNextStep = cellArray;
-            //Cell[,] tempArr = new Cell[windowWidth, windowHeight];
-            //tempArr = cellArray;
-            //cellArray = new Cell[windowWidth, windowHeight];
-            //cellArray = tempArr;
-            //}
-        }
-
-        private void RewriteNextStepArray()
-        {
-            //if(startFlag)
-            //{
-            cellArray = cellArrayNextStep;
-            //}
+            for(int i =0; i<windowWidth;i++)
+            {
+                for(int j =0; j<windowHeight;j++)
+                {
+                    cellArray[i, j].isNotGrown = true;
+                }
+            }
         }
 
         private void FindNeighbour()
@@ -233,7 +229,7 @@ namespace MultiScaleWPF
                     {
                         if(x > 0)
                         {
-                            if (cellArray[x - 1, y].cellState == Cell.CellState.Grain)
+                            if (cellArray[x - 1, y].cellState == Cell.CellState.Grain && cellArray[x - 1, y].isNotGrown)
                             {
                                 neightbourCount.Add(cellArray[x - 1, y].cellColorId);
                             }
@@ -241,7 +237,7 @@ namespace MultiScaleWPF
                         if (y > 0)
                         {
                             
-                            if (cellArray[x, y - 1].cellState == Cell.CellState.Grain)
+                            if (cellArray[x, y - 1].cellState == Cell.CellState.Grain && cellArray[x , y - 1].isNotGrown)
                             {
                                 neightbourCount.Add(cellArray[x, y - 1].cellColorId);
                             }
@@ -249,14 +245,14 @@ namespace MultiScaleWPF
 
                         if (y < windowHeight - 1 )
                         {
-                            if (cellArray[x, y + 1].cellState == Cell.CellState.Grain)
+                            if (cellArray[x, y + 1].cellState == Cell.CellState.Grain && cellArray[x, y + 1].isNotGrown)
                             {
                                 neightbourCount.Add(cellArray[x, y + 1].cellColorId);
                             }
                         }
                         if (x < windowWidth - 1)
                         {
-                            if (cellArray[x + 1, y].cellState == Cell.CellState.Grain)
+                            if (cellArray[x + 1, y].cellState == Cell.CellState.Grain && cellArray[x + 1, y].isNotGrown)
                             {
                                 neightbourCount.Add(cellArray[x + 1, y].cellColorId);
                             }
@@ -267,14 +263,14 @@ namespace MultiScaleWPF
                     {
                         if (x > 0)
                         {
-                            if (cellArray[x - 1, y].cellState == Cell.CellState.Grain)
+                            if (cellArray[x - 1, y].cellState == Cell.CellState.Grain && cellArray[x - 1, y].isNotGrown)
                             {
                                 neightbourCount.Add(cellArray[x - 1, y].cellColorId);
                             }
 
                             if (y < windowHeight - 1)
                             {
-                                if (cellArray[x - 1, y + 1].cellState == Cell.CellState.Grain)
+                                if (cellArray[x - 1, y + 1].cellState == Cell.CellState.Grain && cellArray[x - 1, y + 1].isNotGrown)
                                 {
                                     neightbourCount.Add(cellArray[x - 1, y + 1].cellColorId);
                                 }
@@ -282,7 +278,7 @@ namespace MultiScaleWPF
 
                             if (y > 0)
                             {
-                                if (cellArray[x - 1, y - 1].cellState == Cell.CellState.Grain)
+                                if (cellArray[x - 1, y - 1].cellState == Cell.CellState.Grain && cellArray[x - 1, y - 1].isNotGrown)
                                 {
                                     neightbourCount.Add(cellArray[x - 1, y - 1].cellColorId);
                                 }
@@ -292,14 +288,14 @@ namespace MultiScaleWPF
                         if (y > 0)
                         {
 
-                            if (cellArray[x, y - 1].cellState == Cell.CellState.Grain)
+                            if (cellArray[x, y - 1].cellState == Cell.CellState.Grain && cellArray[x, y - 1].isNotGrown)
                             {
                                 neightbourCount.Add(cellArray[x, y - 1].cellColorId);
                             }
 
                             if (x > windowWidth - 1)
                             {
-                                if (cellArray[x + 1, y - 1].cellState == Cell.CellState.Grain)
+                                if (cellArray[x + 1, y - 1].cellState == Cell.CellState.Grain && cellArray[x + 1, y - 1].isNotGrown)
                                 {
                                     neightbourCount.Add(cellArray[x + 1, y - 1].cellColorId);
                                 }
@@ -308,14 +304,14 @@ namespace MultiScaleWPF
 
                         if (y < windowHeight - 1)
                         {
-                            if (cellArray[x, y + 1].cellState == Cell.CellState.Grain)
+                            if (cellArray[x, y + 1].cellState == Cell.CellState.Grain && cellArray[x, y + 1].isNotGrown)
                             {
                                 neightbourCount.Add(cellArray[x, y + 1].cellColorId);
                             }
 
                             if(x < windowWidth - 1)
                             {
-                                if (cellArray[x + 1, y + 1].cellState == Cell.CellState.Grain)
+                                if (cellArray[x + 1, y + 1].cellState == Cell.CellState.Grain && cellArray[x + 1, y + 1].isNotGrown)
                                 {
                                     neightbourCount.Add(cellArray[x + 1 , y + 1].cellColorId);
                                 }
@@ -324,7 +320,7 @@ namespace MultiScaleWPF
 
                         if (x < windowWidth - 1)
                         {
-                            if (cellArray[x + 1, y].cellState == Cell.CellState.Grain)
+                            if (cellArray[x + 1, y].cellState == Cell.CellState.Grain && cellArray[x + 1, y].isNotGrown)
                             {
                                 neightbourCount.Add(cellArray[x + 1, y].cellColorId);
                             }
@@ -336,9 +332,10 @@ namespace MultiScaleWPF
 
                     //choose neighbour with bigger count in range
                     //to coś popsulo
-                    cellArrayNextStep[x, y].cellState = Cell.CellState.Grain;
-                    cellArrayNextStep[x, y].cellColorId = neightbourCount.GroupBy(a => a).OrderByDescending(b => b.Count()).First().Key;
-                    cellArrayNextStep[x, y].cellColor = getCellIdColorFromDictionary(cellArrayNextStep[x, y].cellColorId);
+                    cellArray[x, y].cellState = Cell.CellState.Grain;
+                    cellArray[x, y].isNotGrown = false;
+                    cellArray[x, y].cellColorId = neightbourCount.GroupBy(a => a).OrderByDescending(b => b.Count()).First().Key;
+                    cellArray[x, y].cellColor = getCellIdColorFromDictionary(cellArray[x, y].cellColorId);
                 }
             }
 

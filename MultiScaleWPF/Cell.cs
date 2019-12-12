@@ -15,6 +15,7 @@ namespace MultiScaleWPF
         public bool isRecrystalized { get; set; }
         public int cellEnergy { get; set; }
         public CellState cellState { get; set; }
+        public bool isNotGrown { get; set; }
 
         public enum CellState
         {
@@ -29,6 +30,7 @@ namespace MultiScaleWPF
             this.isRecrystalized = false;
             this.cellEnergy = 0;
             this.cellState = CellState.Empty;
+            this.isNotGrown = true;
         }
         public Color setDefaultCellColor()//int cellId)
         {
