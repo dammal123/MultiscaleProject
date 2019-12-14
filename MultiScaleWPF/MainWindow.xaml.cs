@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Microsoft.Win32;
+using System;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
@@ -26,6 +24,8 @@ namespace MultiScaleWPF
         MainFile mainFile;
         Task task;
         CancellationTokenSource wtoken;
+        bool uiNotBlockedFlag = false;
+        public bool firstSetUpDone = false;
 
         public MainWindow()
         {
@@ -33,43 +33,8 @@ namespace MultiScaleWPF
             InitializeComponent();
             PaintSurface.Width = mainFile.windowWidth;
             PaintSurface.Height = mainFile.windowHeight;
-            
+            uiNotBlockedFlag = true;
         }
-
-        //public void test()
-        //{
-        //    try
-        //    {
-        //        RenderTargetBitmap renderBitmap =
-        //        new RenderTargetBitmap(
-        //        (int)PaintSurface.ActualWidth,
-        //        (int)PaintSurface.ActualHeight,
-        //        96d,
-        //        96d,
-        //        PixelFormats.Pbgra32);
-
-        //        DrawingVisual drawingVisual = new DrawingVisual();
-        //        using (DrawingContext drawingContext = drawingVisual.RenderOpen())
-        //        {
-        //            drawingContext.DrawRectangle(canvBlade1Image.Background, null, new Rect(0, 0, canvBlade1Image.ActualWidth, canvBlade1Image.ActualHeight));
-
-
-        //        }
-        //        renderBitmap.Render(drawingVisual);
-        //        renderBitmap.Render(canvBlade1Image);
-        //        using (FileStream outStream = new FileStream(@"C:\Images\Keep\Blade1test.png.", FileMode.Create))
-        //        {
-        //            PngBitmapEncoder encoder = new PngBitmapEncoder();
-        //            encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-        //            encoder.Save(outStream);
-        //        }
-        //    }
-        //    catch (Exception E)
-        //    {
-        //        MessageBox.Show("Error in rendering blade 1 image... " + E);
-        //        return false;
-        //    }
-        //}
 
         private void Canvas_MouseDown_1(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
@@ -89,30 +54,9 @@ namespace MultiScaleWPF
                 mainFile.cellArray[Convert.ToInt32( currentPoint.X), Convert.ToInt32( currentPoint.Y)].cellState = Cell.CellState.Inclusion;
 
                 mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellColor = System.Drawing.Color.Black;// Color.FromRgb(0,0,0);
-                //and add status for that
-
+                                                                                                                                            //and add status for that
+                mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellId = Convert.ToInt32(currentPoint.X) + Convert.ToInt32(currentPoint.Y) * mainFile.windowWidth;
             }
-        }
-
-        private void NeumanButton_Checked(object sender, RoutedEventArgs e)
-        {
-            //cant be running
-            mainFile.neighbourhoodType = MainFile.NeighbourhoodType.vonNeuman;
-        }
-        private void MooreButton_Checked(object sender, RoutedEventArgs e)
-        {
-            //cant be running
-            mainFile.neighbourhoodType = MainFile.NeighbourhoodType.Moore;
-        }
-
-        private void absorbingButton_Checked(object sender, RoutedEventArgs e)
-        {
-            mainFile.boundaryCondition = MainFile.BoundaryCondition.absorbing;
-        }
-        private void periodicButton_Checked(object sender, RoutedEventArgs e)
-        {
-
-            mainFile.boundaryCondition = MainFile.BoundaryCondition.periodic;
         }
 
         private void startButton_Click(object sender, RoutedEventArgs e)
@@ -124,20 +68,43 @@ namespace MultiScaleWPF
                 while (true)
                 {
                     mainFile.AppWorkflow();
-                    mainFile.startFlag = true;
+                    mainFile.blockedConfiguration = true;
+                    uiNotBlockedFlag = false;
                     Dispatcher.Invoke(new Action(() => {
 
                         image.Source = DrawImage(mainFile.testArray);
 
                     }), DispatcherPriority.ContextIdle);
-                    if (mainFile.stopFlag)
+                    if (mainFile.stopWorkFlowFlag)
                     {
                         StopMethod();
                         mainFile = new MainFile();
                     }
-                        await Task.Delay(100, wtoken.Token); // <- await with cancellation
+                    await Task.Delay(100, wtoken.Token); // <- await with cancellation
                 }
             }, wtoken.Token);
+        }
+
+        private void NeumanButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+                mainFile.neighbourhoodType = MainFile.NeighbourhoodType.vonNeuman;
+        }
+        private void MooreButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+                mainFile.neighbourhoodType = MainFile.NeighbourhoodType.Moore;
+        }
+
+        private void absorbingButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+                mainFile.boundaryCondition = MainFile.BoundaryCondition.absorbing;
+        }
+        private void periodicButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+                mainFile.boundaryCondition = MainFile.BoundaryCondition.periodic;
         }
         private void stopButton_Click(object sender, RoutedEventArgs e)
         {
@@ -145,62 +112,196 @@ namespace MultiScaleWPF
         }
         private void resetButton_Click(object sender, RoutedEventArgs e)
         {
+            StopMethod();
             mainFile = new MainFile();
             image.Source = DrawImage(mainFile.testArray);
         }
 
         private void numberGrainsTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (Int32.TryParse(numberGrainsTextBox.Text, out int parseResult))
-                mainFile.grainNumber = parseResult;
-            else
-                mainFile.grainNumber = 5;
+            if (uiNotBlockedFlag)
+            {
+                if (Int32.TryParse(numberGrainsTextBox.Text, out int parseResult))
+                    mainFile.grainNumber = parseResult;
+                else
+                    mainFile.grainNumber = 5;
+            }
         }
 
         private void inclusionDiameterTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (Int32.TryParse(inclusionDiameterTextBox.Text, out int parseResult))
-                mainFile.inclusionDiameter = parseResult;
-            else
-                mainFile.inclusionDiameter = 5;
+            if (uiNotBlockedFlag)
+            {
+                if (Int32.TryParse(inclusionDiameterTextBox.Text, out int parseResult))
+                    mainFile.inclusionDiameter = parseResult;
+                else
+                    mainFile.inclusionDiameter = 5;
+            }
         }
 
         private void txtImport_Click(object sender, RoutedEventArgs e)
         {
-            //cant be running
-            mainFile.Import("txt");
+            if (uiNotBlockedFlag)
+            {
+                var openFileDialog = new OpenFileDialog();
+
+                openFileDialog.InitialDirectory = "c:\\";
+                openFileDialog.Filter = "All Files (*.*)|*.*";
+
+                openFileDialog.FilterIndex = 1;
+                openFileDialog.Multiselect = false;
+                if (openFileDialog.ShowDialog().ToString().Equals("OK"))
+                {
+                    using (StreamReader file = new StreamReader(openFileDialog.FileName))
+                    {
+                        string line;
+                        int counter = 0;
+                        while ((line = file.ReadLine()) != null)
+                        {
+                            string[] lineArray = line.Split(" ");
+                            int x = counter % mainFile.windowWidth;
+                            int y = (int)Math.Round( (decimal)counter / (decimal)mainFile.windowWidth,MidpointRounding.AwayFromZero);
+                            mainFile.cellArray[x,y].cellId = Convert.ToInt32( lineArray[0]);
+                            mainFile.cellArray[x, y].cellColor = System.Drawing.Color.FromArgb(255, Convert.ToInt32(lineArray[1]), Convert.ToInt32(lineArray[2]), Convert.ToInt32(lineArray[3]));
+                            if (mainFile.cellArray[x, y].cellColor == System.Drawing.Color.Black)
+                            {
+                                mainFile.cellArray[x, y].cellState = Cell.CellState.Inclusion;
+                            }
+                            else if(mainFile.cellArray[x, y].cellColor == System.Drawing.Color.White)
+                            {
+                                mainFile.cellArray[x, y].cellState = Cell.CellState.Empty;
+                            }
+                            else
+                            {
+                                mainFile.cellArray[x, y].cellState = Cell.CellState.Grain;
+                            }
+                        }
+                    }
+                    
+                }
+
+            }
         }
         private void bitmapImport_Click(object sender, RoutedEventArgs e)
         {
-            //cant be running
-            mainFile.Import("bitmap");
+            if (uiNotBlockedFlag)
+            {
+                var openFileDialog = new OpenFileDialog();
+
+                openFileDialog.InitialDirectory = "c:\\";
+                openFileDialog.Filter = "All Files (*.*)|*.*";
+
+                openFileDialog.FilterIndex = 1;
+                openFileDialog.Multiselect = false;
+                if (openFileDialog.ShowDialog().ToString().Equals("OK"))
+                {
+                    System.Drawing.Bitmap img = new System.Drawing.Bitmap(openFileDialog.FileName);
+                    for (int x = 0; x < img.Width; x++)
+                    {
+                        for (int y = 0; y < img.Height;y++)
+                        {
+                            System.Drawing.Color pixel = img.GetPixel(x, y);
+
+                            mainFile.cellArray[x, y].cellId = x + y * mainFile.windowWidth;
+                            mainFile.cellArray[x, y].cellColor = pixel;
+                            if (mainFile.cellArray[x, y].cellColor == System.Drawing.Color.Black)
+                            {
+                                mainFile.cellArray[x, y].cellState = Cell.CellState.Inclusion;
+                            }
+                            else if (mainFile.cellArray[x, y].cellColor == System.Drawing.Color.White)
+                            {
+                                mainFile.cellArray[x, y].cellState = Cell.CellState.Empty;
+                            }
+                            else
+                            {
+                                mainFile.cellArray[x, y].cellState = Cell.CellState.Grain;
+                            }
+                        }
+                    }
+                }
+
+            }
         }
         private void txtExport_Click(object sender, RoutedEventArgs e)
         {
-            //cant be running
-            mainFile.Export("txt");
+            if (uiNotBlockedFlag)
+            {
+                //System.Drawing.Bitmap tempBitmap;
+                //RenderTargetBitmap rtb = new RenderTargetBitmap((int)image.RenderSize.Width,
+                //    (int)image.RenderSize.Height, 96d, 96d, System.Windows.Media.PixelFormats.Default);
+                //rtb.Render(image);
+
+                //var crop = new CroppedBitmap(rtb, new Int32Rect(50, 50, 250, 250));
+
+                //BitmapEncoder pngEncoder = new PngBitmapEncoder();
+                //pngEncoder.Frames.Add(BitmapFrame.Create(crop));
+                //using (Stream s = new MemoryStream())
+                //{
+                //    pngEncoder.Save(s);
+                //    tempBitmap = new System.Drawing.Bitmap(s);
+                //}
+                //get every pixel and go through that
+
+                StringBuilder fileContent = new StringBuilder();
+
+                fileContent.AppendLine("ID R G B");
+                for (int i = 0; i < mainFile.windowWidth; i++)
+                {
+                    for (int j = 0; j < mainFile.windowHeight; j++)
+                    {
+                        string linContent = String.Format("{0} {1} {2} {3}", mainFile.cellArray[i, j].cellId, mainFile.cellArray[i, j].cellColor.R, mainFile.cellArray[i, j].cellColor.G, mainFile.cellArray[i, j].cellColor.B);
+                        fileContent.AppendLine(linContent);
+                    }
+                }
+                SaveFileDialog dialog = new SaveFileDialog();
+                bool? dialogBool = dialog.ShowDialog();
+                if (dialogBool != null && dialogBool == true && dialog.CheckPathExists)
+                {
+                    System.IO.File.WriteAllText(dialog.FileName, fileContent.ToString());
+                }
+            }
         }
         private void bitmapExport_Click(object sender, RoutedEventArgs e)
         {
-            //cant be running
-            mainFile.Export("bitmap");
+            if (uiNotBlockedFlag)
+            {
+                SaveBitmapInFile();
+            }
         }
 
         private void widthTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if(mainFile.startFlag)
+            if (uiNotBlockedFlag)
+            {
+                if (Int32.TryParse(widthTextBox.Text, out int parseResult))
+                    mainFile.windowWidth = parseResult;
+                else
+                    mainFile.windowWidth = 300;
                 PaintSurface.Width = mainFile.windowWidth;
+                StopMethod();
+                mainFile = new MainFile();
+                image.Source = DrawImage(mainFile.testArray);
+
+            }
         }
 
         private void heightTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            //cant be running
-            //for now like that
-            if (mainFile.startFlag)
+            if (uiNotBlockedFlag)
+            {
+                if (Int32.TryParse(heightTextBox.Text, out int parseResult))
+                    mainFile.windowHeight = parseResult;
+                else
+                    mainFile.windowHeight = 300;
                 PaintSurface.Height = mainFile.windowHeight;
+                StopMethod();
+                mainFile = new MainFile();
+                image.Source = DrawImage(mainFile.testArray);
+            }
+                
         }
 
-        public BitmapSource DrawImage(Int32[,] pixels)
+        private BitmapSource DrawImage(Int32[,] pixels)
         {
             int resX = pixels.GetUpperBound(0) + 1;
             int resY = pixels.GetUpperBound(1) + 1;
@@ -232,18 +333,75 @@ namespace MultiScaleWPF
         private void StopMethod()
         {
             // CancellationTokenSource implements IDisposable.
-            using (wtoken)
-            {
-                // Cancel.  This will cancel the task.
-                wtoken.Cancel();
-            }
+            if(wtoken != null)
+                using (wtoken)
+                {
+                    // Cancel.  This will cancel the task.
+                    wtoken.Cancel();
+                }
 
             // Set everything to null, since the references
             // are on the class level and keeping them around
             // is holding onto invalid state.
+            uiNotBlockedFlag = true;
             wtoken = null;
             task = null;
-            mainFile.stopFlag = false;
+            mainFile.stopWorkFlowFlag = false;
+        }
+
+        private static System.Drawing.Bitmap BitmapFromSource(BitmapSource bitmapsource)
+        {
+            System.Drawing.Bitmap bitmap;
+            using (var outStream = new MemoryStream())
+            {
+                BitmapEncoder enc = new BmpBitmapEncoder();
+                enc.Frames.Add(BitmapFrame.Create(bitmapsource));
+                enc.Save(outStream);
+                bitmap = new System.Drawing.Bitmap(outStream);
+            }
+            return bitmap;
+        }
+
+        private void SaveBitmapInFile()
+        {
+            SaveFileDialog dialog = new SaveFileDialog();
+            bool? dialogBool = dialog.ShowDialog();
+            if (dialogBool != null && dialogBool == true && dialog.CheckPathExists)
+            {
+                try
+                {
+                    RenderTargetBitmap rtb = new RenderTargetBitmap((int)image.RenderSize.Width,
+                    (int)image.RenderSize.Height, 96d, 96d, System.Windows.Media.PixelFormats.Default);
+                    rtb.Render(image);
+
+                    var crop = new CroppedBitmap(rtb, new Int32Rect(50, 50, 250, 250));
+
+                    BitmapEncoder pngEncoder = new PngBitmapEncoder();
+                    pngEncoder.Frames.Add(BitmapFrame.Create(crop));
+                    using (Stream s = new MemoryStream())
+                    {
+                        pngEncoder.Save(s);
+                        System.Drawing.Bitmap tempBitmap = new System.Drawing.Bitmap( s);
+                        tempBitmap.Save(dialog.FileName, ImageFormat.Jpeg);
+                    }
+                    
+                }catch(Exception ex)
+                {
+
+                }
+            }
+        }
+
+        private void squareInclusionButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+                mainFile.grainShape = MainFile.GrainShape.Square;
+        }
+
+        private void CircleInclusionButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+                mainFile.grainShape = MainFile.GrainShape.Circle;
         }
     }
 }

@@ -32,3 +32,8 @@ C:\Git repositories\MultiScale Repo\MultiscaleProject\MultiScaleWPF\obj\Debug\ne
 C:\Git repositories\MultiScale Repo\MultiscaleProject\MultiScaleWPF\obj\Debug\netcoreapp3.0\MultiScaleWPF.AssemblyInfo.cs
 C:\Git repositories\MultiScale Repo\MultiscaleProject\MultiScaleWPF\obj\Debug\netcoreapp3.0\MultiScaleWPF.dll
 C:\Git repositories\MultiScale Repo\MultiscaleProject\MultiScaleWPF\obj\Debug\netcoreapp3.0\MultiScaleWPF.pdb
+C:\Git repositories\MultiScale Repo\MultiscaleProject\MultiScaleWPF\bin\Debug\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll
+C:\Git repositories\MultiScale Repo\MultiscaleProject\MultiScaleWPF\bin\Debug\netcoreapp3.0\runtimes\win\lib\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll
+C:\Git repositories\MultiScale Repo\MultiscaleProject\MultiScaleWPF\bin\Debug\netcoreapp3.0\runtimes\unix\lib\netcoreapp3.0\System.Drawing.Common.dll
+C:\Git repositories\MultiScale Repo\MultiscaleProject\MultiScaleWPF\bin\Debug\netcoreapp3.0\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll
+C:\Git repositories\MultiScale Repo\MultiscaleProject\MultiScaleWPF\obj\Debug\netcoreapp3.0\MultiScaleWPF.csproj.CopyComplete

@@ -42,11 +42,5 @@ namespace MultiScaleWPF
             this.cellColor = Color.FromArgb(r.Next(249) + 1, r.Next(249) + 1, r.Next(249) + 1);
             return this.cellColor;
         }
-
-        //not used
-        public void recolorCellFromOtherCell(Cell cell)
-        {
-            this.cellColor = cell.cellColor;
-        }
     }
 }
