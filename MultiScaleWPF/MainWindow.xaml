@@ -76,29 +76,36 @@
                     <RadioButton x:Name="periodicButton" Content="Periodic"  HorizontalAlignment="Left" Checked="periodicButton_Checked"/>
                 </StackPanel>
                 <Separator/>
+                <StackPanel HorizontalAlignment="Center">
+                    <Label x:Name="label6" Content="Inclusion shape" HorizontalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel>
+                    <RadioButton x:Name="squareInclusionButton" Content="Square" IsChecked="True" Checked="squareInclusionButton_Checked" HorizontalAlignment="Left"/>
+                    <RadioButton x:Name="CircleInclusionButton" Content="Circle" Checked="CircleInclusionButton_Checked" HorizontalAlignment="Left"/>
+                </StackPanel>
                 <Separator/>
                 <StackPanel HorizontalAlignment="Center">
-                        <Label x:Name="label6" Content="Inclusion shape" HorizontalAlignment="Center"/>
-                    </StackPanel>
+                    <Label x:Name="label7" Content="Energy type"/>
+                </StackPanel>
                 <StackPanel>
-                <RadioButton x:Name="squareInclusionButton" Content="Square" IsChecked="True" Checked="squareInclusionButton_Checked" HorizontalAlignment="Left"/>
-                <RadioButton x:Name="CircleInclusionButton" Content="Circle" Checked="CircleInclusionButton_Checked" HorizontalAlignment="Left"/>
+                    <RadioButton x:Name="heterogenousButton" Content="Heterogenous" IsChecked="True" Checked="heterogenousButton_Checked" HorizontalAlignment="Left"/>
+                    <RadioButton x:Name="homogenousButton" Content="Homogenous" Checked="homogenousButton_Checked" HorizontalAlignment="Left"/>
                 </StackPanel>
                 <Separator/>
                 <Button x:Name="startButton" Content="Start" Width="50" HorizontalAlignment="Center" Click="startButton_Click"/>
                 <Button x:Name="stopButton" Content="Stop" Width="50" HorizontalAlignment="Center" Click="stopButton_Click"/>
                 <Button x:Name="resetButton" Content="Reset" Width="50" HorizontalAlignment="Center" Click="resetButton_Click"/>
+                
             </StackPanel>
-
             <Canvas Name="PaintSurface" MouseDown="Canvas_MouseDown_1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Canvas.Background>
                     <SolidColorBrush Color="White" Opacity="0"/>
                 </Canvas.Background>
-                <Image x:Name="image" />
+                <Border BorderThickness="1" BorderBrush="Black">
+                    <Image x:Name="image" />
+                </Border>
             </Canvas>
-
         </Grid>
-
         <StatusBar Grid.Row="2">
 
         </StatusBar>

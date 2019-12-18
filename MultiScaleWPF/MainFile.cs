@@ -17,12 +17,12 @@ namespace MultiScaleWPF
         private int borderWidthPx { get; set; }
         public BoundaryCondition boundaryCondition { get; set; }
         public NeighbourhoodType neighbourhoodType { get; set; }
-        private EnergyType energyType { get; set; }
+        public EnergyType energyType { get; set; }
         public GrainShape grainShape { get; set; }
         public bool blockedConfiguration { get; set; }
         public bool stopWorkFlowFlag { get; set; }
 
-        MainWindow mainwindow;
+        //MainWindow mainwindow;
         public Cell[,] cellArray;
         public Int32[,] testArray;
 
@@ -44,7 +44,7 @@ namespace MultiScaleWPF
         }
         public enum GrainShape
         {
-            Circle,
+            Round,
             Square
         }
 
@@ -59,16 +59,65 @@ namespace MultiScaleWPF
             return BitConverter.ToInt32(new byte[] { b, g, r, 0x00 }, 0);
         }
 
+        //private int GetUiValue(string fieldName)
+        //{
+        //    int value;
+        //    switch (fieldName)
+        //    {
+        //        case "widthTextBox":
+        //            TryParseText(mainwindow.widthTextBox.Text,300);
+        //            break;
+        //        case "heightTextBox":
+        //            TryParseText(mainwindow.heightTextBox.Text,300);
+        //            break;
+        //        case "numberGrainsTextBox":
+        //            TryParseText(mainwindow.numberGrainsTextBox.Text, 5);
+        //            break;
+        //        case "inclusionDiameterTextBox":
+        //            TryParseText(mainwindow.inclusionDiameterTextBox.Text, 2);
+        //            break;
+        //    }
+        //    if (Int32.TryParse("", out value))
+        //        return 1;
+        //    return value;
+        //}
+
+        private int TryParseText(string text,int defaultValue)
+        {
+            if (Int32.TryParse(text, out int returnedValue))
+                return returnedValue;
+            else
+                return defaultValue;
+        }
         private void InitializeElements()
         {
             //if (mainwindow.firstSetUpDone) { pobierac wartosci jakos z ui
-            grainNumber = 5;
-            windowHeight = 300;
-            windowWidth = 300;
+            grainNumber = 5;//GetUiValue("numberGrainsTextBox");
+            windowHeight = 300;//GetUiValue("heightTextBox");
+            windowWidth = 300;// GetUiValue("widthTextBox");
             borderWidthPx = 5;
             blockedConfiguration = false;
             cellArray = new Cell[windowWidth, windowHeight];
-            boundaryCondition = BoundaryCondition.absorbing;
+
+           // if(mainwindow.absorbingButton.IsChecked.HasValue && mainwindow.absorbingButton.IsChecked ==true)
+                boundaryCondition = BoundaryCondition.absorbing;
+           // else
+           //     boundaryCondition = BoundaryCondition.periodic;
+
+           // if (mainwindow.NeumanButton.IsChecked.HasValue && mainwindow.NeumanButton.IsChecked == true)
+                neighbourhoodType = NeighbourhoodType.vonNeuman;
+           // else
+           //     neighbourhoodType = NeighbourhoodType.Moore;
+
+           // if (mainwindow.heterogenousButton.IsChecked.HasValue && mainwindow.heterogenousButton.IsChecked == true)
+                energyType = EnergyType.heterogenous;
+          //  else
+          //      energyType = EnergyType.homogenous;
+
+           // if (mainwindow.squareInclusionButton.IsChecked.HasValue && mainwindow.squareInclusionButton.IsChecked == true)
+                grainShape = GrainShape.Square;
+          //  else
+          //      grainShape = GrainShape.Round;
 
             testArray = new Int32[windowWidth, windowHeight];
             for (int i = 0; i < windowWidth; i++)
@@ -91,10 +140,6 @@ namespace MultiScaleWPF
                     cellArray[i, j].cellId = i + j * windowWidth;
                 }
             }
-
-            neighbourhoodType = NeighbourhoodType.vonNeuman;
-            energyType = EnergyType.heterogenous;
-            grainShape = GrainShape.Square;
         }
 
         private Color getCellIdColorFromDictionary(int cellColorId)
@@ -135,7 +180,7 @@ namespace MultiScaleWPF
             }
         }
 
-        private void RecreateIntArray()
+        public void RecreateIntArray()
         {
             int testnum = 0;   
             testArray = new Int32[windowWidth,windowHeight];
