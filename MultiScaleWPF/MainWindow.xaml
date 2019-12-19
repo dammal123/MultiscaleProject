@@ -101,7 +101,7 @@
                 <Canvas.Background>
                     <SolidColorBrush Color="White" Opacity="0"/>
                 </Canvas.Background>
-                <Border BorderThickness="1" BorderBrush="Black">
+                <Border BorderThickness="0" BorderBrush="Black">
                     <Image x:Name="image" />
                 </Border>
             </Canvas>

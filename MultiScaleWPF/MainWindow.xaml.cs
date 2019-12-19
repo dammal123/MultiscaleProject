@@ -156,14 +156,23 @@ namespace MultiScaleWPF
                     using (StreamReader file = new StreamReader(openFileDialog.FileName))
                     {
                         string line;
-                        int x = 0; int y = 0;
+                        int x = 0; int y = 0; bool firstLine = true;
                         while ((line = file.ReadLine()) != null)
                         {
+                            
                             string[] lineArray = line.Split(" ");
                             if (!Int32.TryParse(lineArray[0], out int value))
                                 continue;
 
-                            if(x == mainFile.windowWidth )
+                            if (firstLine)
+                            {
+                                mainFile.windowWidth = Convert.ToInt32( lineArray[0]);
+                                mainFile.windowHeight = Convert.ToInt32( lineArray[1]);
+                                firstLine = false;
+                                continue;
+                            }
+
+                            if (x == mainFile.windowWidth )
                             {
                                 x = 0;
                                 y++;
@@ -243,6 +252,8 @@ namespace MultiScaleWPF
             {
                 StringBuilder fileContent = new StringBuilder();
 
+                fileContent.AppendLine("Image width and height");
+                fileContent.AppendLine(String.Format("{0} {1}", mainFile.windowWidth, mainFile.windowHeight));
                 fileContent.AppendLine("ID R G B");
 
                 for (int j = 0; j < mainFile.windowHeight; j++)
