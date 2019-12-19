@@ -58,7 +58,7 @@
                 <TextBox x:Name="numberGrainsTextBox" TextChanged="numberGrainsTextBox_TextChanged" Text="5" TextAlignment="Center" TextWrapping="Wrap" Width="50" HorizontalAlignment="Center"/>
                 <Separator/>
                 <Label x:Name="label1" Content="Inclusion diameter"  HorizontalAlignment="Center"/>
-                <TextBox x:Name="inclusionDiameterTextBox" Text="2" TextChanged="inclusionDiameterTextBox_TextChanged" TextAlignment="Center" TextWrapping="Wrap" Width="50"  HorizontalAlignment="Center"/>
+                <TextBox x:Name="inclusionDiameterTextBox" Text="5" TextChanged="inclusionDiameterTextBox_TextChanged" TextAlignment="Center" TextWrapping="Wrap" Width="50"  HorizontalAlignment="Center"/>
                 <Separator/>
                 <StackPanel HorizontalAlignment="Center">
                     <Label x:Name="label2" Content="Neighbourhood type"  HorizontalAlignment="Center"/>

@@ -14,7 +14,7 @@ namespace MultiScaleWPF
         public int inclusionDiameter { get; set; }
         public int windowHeight { get; set; }
         public int windowWidth { get; set; }
-        private int borderWidthPx { get; set; }
+        public int borderWidthPx { get; set; }
         public BoundaryCondition boundaryCondition { get; set; }
         public NeighbourhoodType neighbourhoodType { get; set; }
         public EnergyType energyType { get; set; }
@@ -26,7 +26,7 @@ namespace MultiScaleWPF
         public Cell[,] cellArray;
         public Int32[,] testArray;
 
-        private Dictionary<int,Color> colorListDict;
+        public Dictionary<int,Color> colorListDict;
         public enum NeighbourhoodType
         {
             vonNeuman,
@@ -48,98 +48,9 @@ namespace MultiScaleWPF
             Square
         }
 
-        public MainFile()
-        {
-            InitializeElements();
-        }
-
-
-        private Int32 GetColor(byte r, byte g, byte b)
+        public Int32 GetColor(byte r, byte g, byte b)
         {
             return BitConverter.ToInt32(new byte[] { b, g, r, 0x00 }, 0);
-        }
-
-        //private int GetUiValue(string fieldName)
-        //{
-        //    int value;
-        //    switch (fieldName)
-        //    {
-        //        case "widthTextBox":
-        //            TryParseText(mainwindow.widthTextBox.Text,300);
-        //            break;
-        //        case "heightTextBox":
-        //            TryParseText(mainwindow.heightTextBox.Text,300);
-        //            break;
-        //        case "numberGrainsTextBox":
-        //            TryParseText(mainwindow.numberGrainsTextBox.Text, 5);
-        //            break;
-        //        case "inclusionDiameterTextBox":
-        //            TryParseText(mainwindow.inclusionDiameterTextBox.Text, 2);
-        //            break;
-        //    }
-        //    if (Int32.TryParse("", out value))
-        //        return 1;
-        //    return value;
-        //}
-
-        private int TryParseText(string text,int defaultValue)
-        {
-            if (Int32.TryParse(text, out int returnedValue))
-                return returnedValue;
-            else
-                return defaultValue;
-        }
-        private void InitializeElements()
-        {
-            //if (mainwindow.firstSetUpDone) { pobierac wartosci jakos z ui
-            grainNumber = 5;//GetUiValue("numberGrainsTextBox");
-            windowHeight = 300;//GetUiValue("heightTextBox");
-            windowWidth = 300;// GetUiValue("widthTextBox");
-            borderWidthPx = 5;
-            blockedConfiguration = false;
-            cellArray = new Cell[windowWidth, windowHeight];
-
-           // if(mainwindow.absorbingButton.IsChecked.HasValue && mainwindow.absorbingButton.IsChecked ==true)
-                boundaryCondition = BoundaryCondition.absorbing;
-           // else
-           //     boundaryCondition = BoundaryCondition.periodic;
-
-           // if (mainwindow.NeumanButton.IsChecked.HasValue && mainwindow.NeumanButton.IsChecked == true)
-                neighbourhoodType = NeighbourhoodType.vonNeuman;
-           // else
-           //     neighbourhoodType = NeighbourhoodType.Moore;
-
-           // if (mainwindow.heterogenousButton.IsChecked.HasValue && mainwindow.heterogenousButton.IsChecked == true)
-                energyType = EnergyType.heterogenous;
-          //  else
-          //      energyType = EnergyType.homogenous;
-
-           // if (mainwindow.squareInclusionButton.IsChecked.HasValue && mainwindow.squareInclusionButton.IsChecked == true)
-                grainShape = GrainShape.Square;
-          //  else
-          //      grainShape = GrainShape.Round;
-
-            testArray = new Int32[windowWidth, windowHeight];
-            for (int i = 0; i < windowWidth; i++)
-            {
-                for (int j = 0; j < windowHeight; j++)
-                {
-                    testArray[i, j] = GetColor(255, 255,255);
-                }
-            }
-
-            colorListDict = new Dictionary<int, Color>();
-
-            for (int i = 0; i < windowWidth; i++)
-            {
-                for (int j = 0; j < windowHeight; j++)
-                {
-                    if (blockedConfiguration && cellArray[i, j].cellState == Cell.CellState.Inclusion)
-                        continue;
-                    cellArray[i, j] = new Cell();
-                    cellArray[i, j].cellId = i + j * windowWidth;
-                }
-            }
         }
 
         private Color getCellIdColorFromDictionary(int cellColorId)

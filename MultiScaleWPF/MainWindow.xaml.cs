@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
@@ -29,8 +30,8 @@ namespace MultiScaleWPF
 
         public MainWindow()
         {
-            mainFile = new MainFile();
             InitializeComponent();
+            CreateNewMainFileInstanceDefaultValues();
             PaintSurface.Width = mainFile.windowWidth;
             PaintSurface.Height = mainFile.windowHeight;
             uiNotBlockedFlag = true;
@@ -72,13 +73,18 @@ namespace MultiScaleWPF
                     uiNotBlockedFlag = false;
                     Dispatcher.Invoke(new Action(() => {
 
+                        IsUIBlockedReadonly(uiNotBlockedFlag);
+
+                    }), DispatcherPriority.ContextIdle);
+
+                    Dispatcher.Invoke(new Action(() => {
+
                         image.Source = DrawImage(mainFile.testArray);
 
                     }), DispatcherPriority.ContextIdle);
                     if (mainFile.stopWorkFlowFlag)
                     {
                         StopMethod();
-                        //mainFile = new MainFile();
                     }
                     await Task.Delay(100, wtoken.Token); // <- await with cancellation
                 }
@@ -113,8 +119,118 @@ namespace MultiScaleWPF
         private void resetButton_Click(object sender, RoutedEventArgs e)
         {
             StopMethod();
-            mainFile = new MainFile();
+
+            uiNotBlockedFlag = true;
+            Dispatcher.Invoke(new Action(() => {
+                IsUIBlockedReadonly(uiNotBlockedFlag);
+
+            }), DispatcherPriority.ContextIdle);
+            CreateNewMainFileInstanceDefaultValues();
             image.Source = DrawImage(mainFile.testArray);
+        }
+        private int TryParseText(string text, int defaultValue)
+        {
+            if (Int32.TryParse(text, out int returnedValue))
+                return returnedValue;
+            else
+                return defaultValue;
+        }
+
+        private int GetUiValue(string fieldName)
+        {
+            int value = 0;
+            switch (fieldName)
+            {
+                case "widthTextBox":
+                    value = TryParseText(widthTextBox.Text, 300);
+                    break;
+                case "heightTextBox":
+                    value = TryParseText(heightTextBox.Text, 300);
+                    break;
+                case "numberGrainsTextBox":
+                    value = TryParseText(numberGrainsTextBox.Text, 5);
+                    break;
+                case "inclusionDiameterTextBox":
+                    value = TryParseText(inclusionDiameterTextBox.Text, 5);
+                    break;
+            }
+            return value;
+        }
+
+        private void IsUIBlockedReadonly(bool boolSwitchValue)
+        {
+            widthTextBox.IsReadOnly = !boolSwitchValue;
+            heightTextBox.IsReadOnly = !boolSwitchValue;
+            numberGrainsTextBox.IsReadOnly = !boolSwitchValue;
+            inclusionDiameterTextBox.IsReadOnly = !boolSwitchValue;
+
+            NeumanButton.IsEnabled = boolSwitchValue;
+            MooreButton.IsEnabled = boolSwitchValue;
+
+            absorbingButton.IsEnabled = boolSwitchValue;
+            periodicButton.IsEnabled = boolSwitchValue;
+
+            squareInclusionButton.IsEnabled = boolSwitchValue;
+            CircleInclusionButton.IsEnabled = boolSwitchValue;
+
+            heterogenousButton.IsEnabled = boolSwitchValue;
+            homogenousButton.IsEnabled = boolSwitchValue;
+
+        }
+
+        private void CreateNewMainFileInstanceDefaultValues()
+        {
+            mainFile = new MainFile();
+
+            mainFile.grainNumber = GetUiValue("numberGrainsTextBox");
+            mainFile.windowHeight = GetUiValue("heightTextBox");
+            mainFile.windowWidth = GetUiValue("widthTextBox");
+            mainFile.inclusionDiameter = GetUiValue("inclusionDiameterTextBox");
+            mainFile.borderWidthPx = 5; //future development
+            mainFile.blockedConfiguration = false;
+            mainFile.cellArray = new Cell[mainFile.windowWidth, mainFile.windowHeight];
+
+             if(absorbingButton.IsChecked.HasValue && absorbingButton.IsChecked == true)
+                 mainFile.boundaryCondition = MainFile.BoundaryCondition.absorbing;
+             else
+                mainFile.boundaryCondition = MainFile.BoundaryCondition.periodic;
+
+             if (NeumanButton.IsChecked.HasValue && NeumanButton.IsChecked == true)
+                 mainFile.neighbourhoodType = MainFile.NeighbourhoodType.vonNeuman;
+             else
+                mainFile.neighbourhoodType = MainFile.NeighbourhoodType.Moore;
+
+            if (heterogenousButton.IsChecked.HasValue && heterogenousButton.IsChecked == true)
+                mainFile.energyType = MainFile.EnergyType.heterogenous;
+            else
+                mainFile.energyType = MainFile.EnergyType.homogenous;
+
+            if (squareInclusionButton.IsChecked.HasValue && squareInclusionButton.IsChecked == true)
+                mainFile.grainShape = MainFile.GrainShape.Square;
+            else
+                mainFile.grainShape = MainFile.GrainShape.Round;
+
+            mainFile.testArray = new Int32[mainFile.windowWidth, mainFile.windowHeight];
+            for (int i = 0; i < mainFile.windowWidth; i++)
+            {
+                for (int j = 0; j < mainFile.windowHeight; j++)
+                {
+                    mainFile.testArray[i, j] = mainFile.GetColor(255, 255, 255);
+                }
+            }
+
+            mainFile.colorListDict = new Dictionary<int, System.Drawing.Color>();
+
+            for (int i = 0; i < mainFile.windowWidth; i++)
+            {
+                for (int j = 0; j < mainFile.windowHeight; j++)
+                {
+                    if (mainFile.blockedConfiguration && mainFile.cellArray[i, j].cellState == Cell.CellState.Inclusion)
+                        continue;
+                    mainFile.cellArray[i, j] = new Cell();
+                    mainFile.cellArray[i, j].cellId = i + j * mainFile.windowWidth;
+                }
+            }
         }
 
         private void numberGrainsTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -122,7 +238,13 @@ namespace MultiScaleWPF
             if (uiNotBlockedFlag)
             {
                 if (Int32.TryParse(numberGrainsTextBox.Text, out int parseResult))
-                    mainFile.grainNumber = parseResult;
+                {
+                    if (parseResult > 100)
+                        parseResult = 100; //max value 100
+                    if (parseResult < 1)
+                        parseResult = 1;
+                    mainFile.inclusionDiameter = parseResult;
+                }
                 else
                     mainFile.grainNumber = 5;
             }
@@ -133,7 +255,13 @@ namespace MultiScaleWPF
             if (uiNotBlockedFlag)
             {
                 if (Int32.TryParse(inclusionDiameterTextBox.Text, out int parseResult))
+                {
+                    if (parseResult > 50)
+                        parseResult = 50; //max value 50
+                    if (parseResult < 1)
+                        parseResult = 1;
                     mainFile.inclusionDiameter = parseResult;
+                }
                 else
                     mainFile.inclusionDiameter = 5;
             }
@@ -287,13 +415,17 @@ namespace MultiScaleWPF
             if (uiNotBlockedFlag)
             {
                 if (Int32.TryParse(widthTextBox.Text, out int parseResult))
+                {
+                    if (parseResult > 500)
+                        parseResult = 500; //max value 500
+                    if (parseResult < 100)
+                        parseResult = 100;
                     mainFile.windowWidth = parseResult;
+                }
                 else
                     mainFile.windowWidth = 300;
                 PaintSurface.Width = mainFile.windowWidth;
-                StopMethod();
-                //mainFile = new MainFile();
-                //image.Source = DrawImage(mainFile.testArray);
+                CreateNewMainFileInstanceDefaultValues();
 
             }
         }
@@ -303,13 +435,17 @@ namespace MultiScaleWPF
             if (uiNotBlockedFlag)
             {
                 if (Int32.TryParse(heightTextBox.Text, out int parseResult))
+                {
+                    if (parseResult > 500)
+                        parseResult = 500; //max value 500
+                    if (parseResult < 100)
+                        parseResult = 100;
                     mainFile.windowHeight = parseResult;
+                }
                 else
                     mainFile.windowHeight = 300;
                 PaintSurface.Height = mainFile.windowHeight;
-                StopMethod();
-                //mainFile = new MainFile();
-                //image.Source = DrawImage(mainFile.testArray);
+                CreateNewMainFileInstanceDefaultValues();
             }
                 
         }
@@ -356,7 +492,11 @@ namespace MultiScaleWPF
             // Set everything to null, since the references
             // are on the class level and keeping them around
             // is holding onto invalid state.
-            uiNotBlockedFlag = true;
+            //uiNotBlockedFlag = true;
+            //Dispatcher.Invoke(new Action(() => {
+            //    IsUIBlockedReadonly(uiNotBlockedFlag);
+
+            //}), DispatcherPriority.ContextIdle);
             wtoken = null;
             task = null;
             mainFile.stopWorkFlowFlag = false;
