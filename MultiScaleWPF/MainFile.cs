@@ -12,6 +12,7 @@ namespace MultiScaleWPF
     {
         public int grainNumber { get; set; }
         public int inclusionDiameter { get; set; }
+        public int inclusionNumber { get; set; }
         public int windowHeight { get; set; }
         public int windowWidth { get; set; }
         public int borderWidthPx { get; set; }
@@ -138,6 +139,95 @@ namespace MultiScaleWPF
                 for(int j =0; j<windowHeight;j++)
                 {
                     cellArray[i, j].isNotGrown = true;
+                }
+            }
+        }
+
+        public void FindBorderCells()
+        {
+            for (int x = 0; x < windowWidth; x++)
+            {
+                for (int y = 0; y < windowHeight; y++)
+                {
+
+                    if (cellArray[x, y].cellState == Cell.CellState.Empty)
+                        continue;
+
+                    if(cellArray[x, y].cellState == Cell.CellState.Grain)
+                    {
+                        int borderNeightbourCount = 0;
+
+                        if (x > 0)
+                        {
+                            if (cellArray[x - 1, y].cellState == Cell.CellState.Grain && cellArray[x - 1, y].cellColorId != cellArray[x, y].cellColorId)
+                            {
+                                borderNeightbourCount++;
+                            }
+
+                            if (y < windowHeight - 1)
+                            {
+                                if (cellArray[x - 1, y + 1].cellState == Cell.CellState.Grain && cellArray[x - 1, y + 1].cellColorId != cellArray[x, y].cellColorId)
+                                {
+                                    borderNeightbourCount++;
+                                }
+                            }
+
+                            if (y > 0)
+                            {
+                                if (cellArray[x - 1, y - 1].cellState == Cell.CellState.Grain && cellArray[x - 1, y - 1].cellColorId != cellArray[x, y].cellColorId)
+                                {
+                                    borderNeightbourCount++;
+                                }
+                            }
+
+                        }
+                        if (y > 0)
+                        {
+
+                            if (cellArray[x, y - 1].cellState == Cell.CellState.Grain && cellArray[x, y - 1].cellColorId != cellArray[x, y].cellColorId)
+                            {
+                                borderNeightbourCount++;
+                            }
+
+                            if (x > windowWidth - 1)
+                            {
+                                if (cellArray[x + 1, y - 1].cellState == Cell.CellState.Grain && cellArray[x + 1, y - 1].cellColorId != cellArray[x, y].cellColorId)
+                                {
+                                    borderNeightbourCount++;
+                                }
+                            }
+                        }
+
+                        if (y < windowHeight - 1)
+                        {
+                            if (cellArray[x, y + 1].cellState == Cell.CellState.Grain && cellArray[x, y + 1].cellColorId != cellArray[x, y].cellColorId)
+                            {
+                                borderNeightbourCount++;
+                            }
+
+                            if (x < windowWidth - 1)
+                            {
+                                if (cellArray[x + 1, y + 1].cellState == Cell.CellState.Grain && cellArray[x + 1, y + 1].cellColorId != cellArray[x, y].cellColorId)
+                                {
+                                    borderNeightbourCount++;
+                                }
+                            }
+                        }
+
+                        if (x < windowWidth - 1)
+                        {
+                            if (cellArray[x + 1, y].cellState == Cell.CellState.Grain && cellArray[x + 1, y].cellColorId != cellArray[x, y].cellColorId)
+                            {
+                                borderNeightbourCount++;
+                            }
+                        }
+                                
+
+                        if (borderNeightbourCount == 0)
+                            continue;
+
+                        cellArray[x, y].isOnBorder = true;
+                    }
                 }
             }
         }

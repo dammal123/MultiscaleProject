@@ -16,7 +16,7 @@ namespace MultiScaleWPF
         public int cellEnergy { get; set; }
         public CellState cellState { get; set; }
         public bool isNotGrown { get; set; }
-
+        public bool isOnBorder { get; set; }
         public enum CellState
         {
             Inclusion,
@@ -31,6 +31,7 @@ namespace MultiScaleWPF
             this.cellEnergy = 0;
             this.cellState = CellState.Empty;
             this.isNotGrown = true;
+            this.isOnBorder = false;
         }
         public Color setDefaultCellColor()//int cellId)
         {

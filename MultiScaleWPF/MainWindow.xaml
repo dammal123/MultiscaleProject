@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MultiScaleWPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="800">
+        Title="MainWindow" Height="650" Width="800">
     <Grid>
         <Grid.RowDefinitions>
 
@@ -56,9 +56,11 @@
                 <TextBox x:Name="heightTextBox" Text="300" TextAlignment="Center" TextWrapping="Wrap" Width="50" TextChanged="heightTextBox_TextChanged"/>
                 <Label x:Name="label" Content="Number of grains"  HorizontalAlignment="Center"/>
                 <TextBox x:Name="numberGrainsTextBox" TextChanged="numberGrainsTextBox_TextChanged" Text="5" TextAlignment="Center" TextWrapping="Wrap" Width="50" HorizontalAlignment="Center"/>
-                <Separator/>
-                <Label x:Name="label1" Content="Inclusion diameter"  HorizontalAlignment="Center"/>
-                <TextBox x:Name="inclusionDiameterTextBox" Text="5" TextChanged="inclusionDiameterTextBox_TextChanged" TextAlignment="Center" TextWrapping="Wrap" Width="50"  HorizontalAlignment="Center"/>
+                <Label x:Name="label1" Content="Inclusion diameter" HorizontalAlignment="Center"/>
+                <TextBox x:Name="inclusionDiameterTextBox" Text="5" TextChanged="inclusionDiameterTextBox_TextChanged" TextAlignment="Center" TextWrapping="Wrap" Width="50"/>
+                <Label x:Name="label8" Content="Inclusion number" HorizontalAlignment="Center"/>
+                <TextBox x:Name="inclusionNumberTextBox" Text="3"  TextAlignment="Center" TextWrapping="Wrap" Width="50" HorizontalAlignment="Center" TextChanged="inclusionNumberTextBox_TextChanged"/>
+                <Button x:Name="inclusionAfterEndButton" Content="Add inclusion" Click="inclusionAfterEndButton_Click" IsEnabled="False"/>
                 <Separator/>
                 <StackPanel HorizontalAlignment="Center">
                     <Label x:Name="label2" Content="Neighbourhood type"  HorizontalAlignment="Center"/>
@@ -95,7 +97,7 @@
                 <Button x:Name="startButton" Content="Start" Width="50" HorizontalAlignment="Center" Click="startButton_Click"/>
                 <Button x:Name="stopButton" Content="Stop" Width="50" HorizontalAlignment="Center" Click="stopButton_Click"/>
                 <Button x:Name="resetButton" Content="Reset" Width="50" HorizontalAlignment="Center" Click="resetButton_Click"/>
-                
+
             </StackPanel>
             <Canvas Name="PaintSurface" MouseDown="Canvas_MouseDown_1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Canvas.Background>

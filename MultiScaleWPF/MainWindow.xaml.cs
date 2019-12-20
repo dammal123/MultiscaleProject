@@ -39,24 +39,27 @@ namespace MultiScaleWPF
 
         private void Canvas_MouseDown_1(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (uiNotBlockedFlag)
             {
-                currentPoint = e.GetPosition(PaintSurface);
+                if (e.LeftButton == MouseButtonState.Pressed)
+                {
+                    currentPoint = e.GetPosition(PaintSurface);
 
-                Rectangle rec = new Rectangle();
-                Canvas.SetTop(rec, currentPoint.Y);
-                Canvas.SetLeft(rec, currentPoint.X);
-                rec.Width = mainFile.inclusionDiameter;
-                rec.Height = mainFile.inclusionDiameter;
-                rec.Fill = new SolidColorBrush(Colors.Black);
-                PaintSurface.Children.Add(rec);
+                    Rectangle rec = new Rectangle();
+                    Canvas.SetTop(rec, currentPoint.Y);
+                    Canvas.SetLeft(rec, currentPoint.X);
+                    rec.Width = mainFile.inclusionDiameter;
+                    rec.Height = mainFile.inclusionDiameter;
+                    rec.Fill = new SolidColorBrush(Colors.Black);
+                    PaintSurface.Children.Add(rec);
 
-                //set it to not reset this cell
-                mainFile.cellArray[Convert.ToInt32( currentPoint.X), Convert.ToInt32( currentPoint.Y)].cellState = Cell.CellState.Inclusion;
+                    //set it to not reset this cell
+                    mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellState = Cell.CellState.Inclusion;
 
-                mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellColor = System.Drawing.Color.Black;// Color.FromRgb(0,0,0);
-                                                                                                                                            //and add status for that
-                mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellId = Convert.ToInt32(currentPoint.X) + Convert.ToInt32(currentPoint.Y) * mainFile.windowWidth;
+                    mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellColor = System.Drawing.Color.Black;// Color.FromRgb(0,0,0);
+                                                                                                                                                //and add status for that
+                    mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellId = Convert.ToInt32(currentPoint.X) + Convert.ToInt32(currentPoint.Y) * mainFile.windowWidth;
+                }
             }
         }
 
@@ -85,6 +88,12 @@ namespace MultiScaleWPF
                     if (mainFile.stopWorkFlowFlag)
                     {
                         StopMethod();
+
+                        Dispatcher.Invoke(new Action(() => {
+
+                            inclusionAfterEndButton.IsEnabled = true;
+
+                        }), DispatcherPriority.ContextIdle);
                     }
                     await Task.Delay(100, wtoken.Token); // <- await with cancellation
                 }
@@ -152,6 +161,9 @@ namespace MultiScaleWPF
                     break;
                 case "inclusionDiameterTextBox":
                     value = TryParseText(inclusionDiameterTextBox.Text, 5);
+                    break; 
+                case "inclusionNumberTextBox":
+                    value = TryParseText(inclusionNumberTextBox.Text, 3);
                     break;
             }
             return value;
@@ -163,6 +175,7 @@ namespace MultiScaleWPF
             heightTextBox.IsReadOnly = !boolSwitchValue;
             numberGrainsTextBox.IsReadOnly = !boolSwitchValue;
             inclusionDiameterTextBox.IsReadOnly = !boolSwitchValue;
+            inclusionNumberTextBox.IsReadOnly = !boolSwitchValue;
 
             NeumanButton.IsEnabled = boolSwitchValue;
             MooreButton.IsEnabled = boolSwitchValue;
@@ -186,6 +199,7 @@ namespace MultiScaleWPF
             mainFile.windowHeight = GetUiValue("heightTextBox");
             mainFile.windowWidth = GetUiValue("widthTextBox");
             mainFile.inclusionDiameter = GetUiValue("inclusionDiameterTextBox");
+            mainFile.inclusionNumber = GetUiValue("inclusionNumberTextBox");
             mainFile.borderWidthPx = 5; //future development
             mainFile.blockedConfiguration = false;
             mainFile.cellArray = new Cell[mainFile.windowWidth, mainFile.windowHeight];
@@ -429,7 +443,24 @@ namespace MultiScaleWPF
 
             }
         }
+        private void inclusionNumberTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+            {
+                if (Int32.TryParse(inclusionNumberTextBox.Text, out int parseResult))
+                {
+                    if (parseResult > 10)
+                        parseResult = 10; //max value 10
+                    if (parseResult < 1)
+                        parseResult = 1;
+                    mainFile.inclusionNumber = parseResult;
+                }
+                else
+                    mainFile.inclusionNumber = 3;
 
+                CreateNewMainFileInstanceDefaultValues();
+            }
+        }
         private void heightTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (uiNotBlockedFlag)
@@ -554,6 +585,42 @@ namespace MultiScaleWPF
         {
             if (uiNotBlockedFlag)
                 mainFile.energyType = MainFile.EnergyType.homogenous;
+        }
+
+        private void inclusionAfterEndButton_Click(object sender, RoutedEventArgs e)
+        {
+            mainFile.FindBorderCells();
+
+            int placedInclusionNumber = 0;
+
+            while (placedInclusionNumber < mainFile.inclusionNumber)
+            {
+                Random rand = new Random();
+                int i = rand.Next(0, mainFile.windowWidth - 1);
+                int j = rand.Next(0, mainFile.windowHeight - 1);
+                if (mainFile.cellArray[i, j].isOnBorder && mainFile.cellArray[i, j].cellState != Cell.CellState.Inclusion)
+                {
+                    //currentPoint = e.GetPosition(PaintSurface);
+
+                    Rectangle rec = new Rectangle();
+                    Canvas.SetTop(rec, j);
+                    Canvas.SetLeft(rec, i);
+                    rec.Width = mainFile.inclusionDiameter;
+                    rec.Height = mainFile.inclusionDiameter;
+                    rec.Fill = new SolidColorBrush(Colors.Black);
+                    PaintSurface.Children.Add(rec);
+
+                    //set it to not reset this cell
+                    mainFile.cellArray[i, j].cellState = Cell.CellState.Inclusion;
+
+                    mainFile.cellArray[i, j].cellColor = System.Drawing.Color.Black;// Color.FromRgb(0,0,0);
+                                                                                    //and add status for that
+                    mainFile.cellArray[i, j].cellId = i + j * mainFile.windowWidth;
+                    //paint inclusion
+                    placedInclusionNumber++;
+                }
+            }
+            
         }
     }
 }
