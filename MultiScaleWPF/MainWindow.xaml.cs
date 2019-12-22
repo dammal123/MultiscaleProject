@@ -51,16 +51,89 @@ namespace MultiScaleWPF
                     rec.Width = mainFile.inclusionDiameter;
                     rec.Height = mainFile.inclusionDiameter;
                     rec.Fill = new SolidColorBrush(Colors.Black);
-                    PaintSurface.Children.Add(rec);
-
+                    //for now commented out
+                    //PaintSurface.Children.Add(rec);
+                    if(squareInclusionButton != null && squareInclusionButton.IsChecked == true)//mainFile.inclusionShape == MainFile.InclusionShape.Square)
+                    {
+                        SquareInclusionsBefore();
+                    }
+                    else
+                    {
+                        RoundInclusionBefore();
+                    }
                     //set it to not reset this cell
-                    mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellState = Cell.CellState.Inclusion;
-
-                    mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellColor = System.Drawing.Color.Black;// Color.FromRgb(0,0,0);
-                                                                                                                                                //and add status for that
-                    mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellId = Convert.ToInt32(currentPoint.X) + Convert.ToInt32(currentPoint.Y) * mainFile.windowWidth;
+                    
+                    mainFile.RecreateIntArray();
+                    //CreateNewMainFileInstanceDefaultValues();
+                    image.Source = DrawImage(mainFile.testArray);
                 }
             }
+        }
+
+        private void SquareInclusionsBefore()
+        {
+            for (int num = 0; num < mainFile.inclusionDiameter; num++)
+            {
+                if (mainFile.inclusionDiameter == 1)
+                {
+                    //mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellState = Cell.CellState.Inclusion;
+
+                    //mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellColor = System.Drawing.Color.Black;
+
+                    //mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellId = Convert.ToInt32(currentPoint.X) + Convert.ToInt32(currentPoint.Y) * mainFile.windowWidth;
+                    PaintPixelAddToCellArray(Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y));
+                }
+                else
+                {
+                    int halfOfInclusionDiameter = mainFile.inclusionDiameter / 2;
+                    for (int i = Convert.ToInt32(currentPoint.X) - halfOfInclusionDiameter; i < Convert.ToInt32(currentPoint.X) + halfOfInclusionDiameter; i++)
+                    {
+                        for (int j = Convert.ToInt32(currentPoint.Y) - halfOfInclusionDiameter; j < Convert.ToInt32(currentPoint.Y) + halfOfInclusionDiameter; j++)
+                        {
+                        //    mainFile.cellArray[i, j].cellState = Cell.CellState.Inclusion;
+
+                        //    mainFile.cellArray[i, j].cellColor = System.Drawing.Color.Black;
+
+                        //    mainFile.cellArray[i, j].cellId = i + j * mainFile.windowWidth;
+                            PaintPixelAddToCellArray(i,j);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void RoundInclusionBefore()
+        {
+            int halfOfInclusionDiameter = mainFile.inclusionDiameter / 2;
+            const double PI = 3.1415926535;
+            double x1, y1;
+            int x = Convert.ToInt32(currentPoint.X);
+            int y = Convert.ToInt32(currentPoint.Y);
+            for(int r = halfOfInclusionDiameter; r > 0; r--)
+            {
+                for (double angle = 0; angle < 360; angle += 0.1)
+                {
+                    x1 = r * Math.Cos(angle * PI / 180);
+
+                    y1 = r * Math.Sin(angle * PI / 180);
+
+                    //mainFile.cellArray[x + (int)x1, y + (int)y1].cellState = Cell.CellState.Inclusion;
+
+                    //mainFile.cellArray[x + (int)x1, y + (int)y1].cellColor = System.Drawing.Color.Black;
+
+                    //mainFile.cellArray[x + (int)x1, y + (int)y1].cellId = x + (int)x1 + y + (int)y1 * mainFile.windowWidth;
+                    PaintPixelAddToCellArray(x + (int)x1,y +(int)y1);
+                }
+            }
+        }
+
+        private void PaintPixelAddToCellArray( int x, int y)
+        {
+            mainFile.cellArray[x, y].cellState = Cell.CellState.Inclusion;
+
+            mainFile.cellArray[x, y].cellColor = System.Drawing.Color.Black;
+
+            mainFile.cellArray[x, y].cellId = x  + y * mainFile.windowWidth;
         }
 
         private void startButton_Click(object sender, RoutedEventArgs e)
@@ -132,8 +205,8 @@ namespace MultiScaleWPF
             uiNotBlockedFlag = true;
             Dispatcher.Invoke(new Action(() => {
                 IsUIBlockedReadonly(uiNotBlockedFlag);
-
             }), DispatcherPriority.ContextIdle);
+
             CreateNewMainFileInstanceDefaultValues();
             image.Source = DrawImage(mainFile.testArray);
         }
@@ -220,9 +293,9 @@ namespace MultiScaleWPF
                 mainFile.energyType = MainFile.EnergyType.homogenous;
 
             if (squareInclusionButton.IsChecked.HasValue && squareInclusionButton.IsChecked == true)
-                mainFile.grainShape = MainFile.GrainShape.Square;
+                mainFile.inclusionShape = MainFile.InclusionShape.Square;
             else
-                mainFile.grainShape = MainFile.GrainShape.Round;
+                mainFile.inclusionShape = MainFile.InclusionShape.Round;
 
             mainFile.testArray = new Int32[mainFile.windowWidth, mainFile.windowHeight];
             for (int i = 0; i < mainFile.windowWidth; i++)
@@ -523,7 +596,7 @@ namespace MultiScaleWPF
             // Set everything to null, since the references
             // are on the class level and keeping them around
             // is holding onto invalid state.
-            //uiNotBlockedFlag = true;
+            uiNotBlockedFlag = true;
             //Dispatcher.Invoke(new Action(() => {
             //    IsUIBlockedReadonly(uiNotBlockedFlag);
 
@@ -566,13 +639,13 @@ namespace MultiScaleWPF
         private void squareInclusionButton_Checked(object sender, RoutedEventArgs e)
         {
             if (uiNotBlockedFlag)
-                mainFile.grainShape = MainFile.GrainShape.Square;
+                mainFile.inclusionShape = MainFile.InclusionShape.Square;
         }
 
         private void CircleInclusionButton_Checked(object sender, RoutedEventArgs e)
         {
             if (uiNotBlockedFlag)
-                mainFile.grainShape = MainFile.GrainShape.Round;
+                mainFile.inclusionShape = MainFile.InclusionShape.Round;
         }
 
         private void heterogenousButton_Checked(object sender, RoutedEventArgs e)

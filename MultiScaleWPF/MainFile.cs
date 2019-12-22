@@ -19,7 +19,7 @@ namespace MultiScaleWPF
         public BoundaryCondition boundaryCondition { get; set; }
         public NeighbourhoodType neighbourhoodType { get; set; }
         public EnergyType energyType { get; set; }
-        public GrainShape grainShape { get; set; }
+        public InclusionShape inclusionShape { get; set; }
         public bool blockedConfiguration { get; set; }
         public bool stopWorkFlowFlag { get; set; }
 
@@ -43,7 +43,7 @@ namespace MultiScaleWPF
             homogenous,
             heterogenous
         }
-        public enum GrainShape
+        public enum InclusionShape
         {
             Round,
             Square
