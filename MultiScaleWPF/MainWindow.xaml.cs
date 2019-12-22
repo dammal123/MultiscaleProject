@@ -119,6 +119,12 @@ namespace MultiScaleWPF
         private void startButton_Click(object sender, RoutedEventArgs e)
         {
             wtoken = new CancellationTokenSource();
+            
+            //possible to DELETE IT FROM HERE
+
+            CreateNewMainFileInstanceDefaultValues();
+
+            //
 
             task = Task.Run(async () =>  // <- marked async
             {
@@ -218,6 +224,10 @@ namespace MultiScaleWPF
                 case "inclusionNumberTextBox":
                     value = TryParseText(inclusionNumberTextBox.Text, 3);
                     break;
+                case "propabilityTextBox":
+                    value = TryParseText(propabilityTextBox.Text, 90);
+                    break;
+                    
             }
             return value;
         }
@@ -254,17 +264,20 @@ namespace MultiScaleWPF
             mainFile.inclusionDiameter = GetUiValue("inclusionDiameterTextBox");
             mainFile.inclusionNumber = GetUiValue("inclusionNumberTextBox");
             mainFile.borderWidthPx = 5; //future development
+            mainFile.propabilityChanceToChange = GetUiValue("propabilityTextBox"); ;//90% na zmiane
             mainFile.blockedConfiguration = false;
             mainFile.cellArray = new Cell[mainFile.windowWidth, mainFile.windowHeight];
 
-             if(absorbingButton.IsChecked.HasValue && absorbingButton.IsChecked == true)
-                 mainFile.boundaryCondition = MainFile.BoundaryCondition.absorbing;
-             else
+            if(absorbingButton.IsChecked.HasValue && absorbingButton.IsChecked == true)
+                mainFile.boundaryCondition = MainFile.BoundaryCondition.absorbing;
+            else
                 mainFile.boundaryCondition = MainFile.BoundaryCondition.periodic;
 
-             if (NeumanButton.IsChecked.HasValue && NeumanButton.IsChecked == true)
-                 mainFile.neighbourhoodType = MainFile.NeighbourhoodType.vonNeuman;
-             else
+            if (NeumanButton.IsChecked.HasValue && NeumanButton.IsChecked == true)
+                mainFile.neighbourhoodType = MainFile.NeighbourhoodType.vonNeuman;
+            else if (PropabilityButton.IsChecked.HasValue && PropabilityButton.IsChecked == true)
+                mainFile.neighbourhoodType = MainFile.NeighbourhoodType.Propability;
+            else
                 mainFile.neighbourhoodType = MainFile.NeighbourhoodType.Moore;
 
             if (heterogenousButton.IsChecked.HasValue && heterogenousButton.IsChecked == true)
@@ -669,6 +682,31 @@ namespace MultiScaleWPF
 
             mainFile.RecreateIntArray();
             image.Source = DrawImage(mainFile.testArray);
+        }
+
+        private void PropabilityButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+                mainFile.neighbourhoodType = MainFile.NeighbourhoodType.Propability;
+        }
+
+        private void propabilityTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+            {
+                if (Int32.TryParse(inclusionNumberTextBox.Text, out int parseResult))
+                {
+                    if (parseResult > 100)
+                        parseResult = 90; 
+                    if (parseResult < 10)
+                        parseResult = 10;
+                    mainFile.inclusionNumber = parseResult;
+                }
+                else
+                    mainFile.inclusionNumber = 90;
+
+                CreateNewMainFileInstanceDefaultValues();
+            }
         }
     }
 }

@@ -23,6 +23,8 @@ namespace MultiScaleWPF
         public bool blockedConfiguration { get; set; }
         public bool stopWorkFlowFlag { get; set; }
 
+        public int propabilityChanceToChange { get; set; }
+
         //MainWindow mainwindow;
         public Cell[,] cellArray;
         public Int32[,] testArray;
@@ -31,7 +33,8 @@ namespace MultiScaleWPF
         public enum NeighbourhoodType
         {
             vonNeuman,
-            Moore
+            Moore,
+            Propability
         }
         public enum BoundaryCondition
         {
@@ -232,8 +235,152 @@ namespace MultiScaleWPF
             }
         }
 
-        private void FindNeighbour()
+        private List<int> VonNeumanNeighbourIdList(int x, int y)
         {
+            List<int> neightbourCount = new List<int>();
+
+            if (x > 0)
+            {
+                AddNeighbour(x - 1, y, neightbourCount);
+               
+            }
+            if (y > 0)
+            {
+                AddNeighbour(x, y - 1, neightbourCount);
+               
+            }
+
+            if (y < windowHeight - 1)
+            {
+                AddNeighbour(x, y + 1, neightbourCount);
+                
+            }
+            if (x < windowWidth - 1)
+            {
+                AddNeighbour(x + 1, y, neightbourCount);
+                
+            }
+            return neightbourCount;
+        }
+
+        private List<int> MooreNeighbourIdList(int x,int y)
+        {
+            List<int> neightbourCount = new List<int>();
+
+            if (x > 0)
+            {
+                AddNeighbour(x - 1, y, neightbourCount);
+               
+                if (y < windowHeight - 1)
+                {
+                    AddNeighbour(x - 1, y + 1, neightbourCount);
+                }
+
+                if (y > 0)
+                {
+                    AddNeighbour(x - 1, y - 1, neightbourCount);
+                }
+            }
+            if (y > 0)
+            {
+                AddNeighbour(x, y - 1, neightbourCount);
+
+                if (x > windowWidth - 1)
+                {
+                    AddNeighbour(x + 1, y - 1, neightbourCount);
+                }
+            }
+
+            if (y < windowHeight - 1)
+            {
+                AddNeighbour(x , y + 1, neightbourCount);
+               
+                if (x < windowWidth - 1)
+                {
+                    AddNeighbour(x + 1, y + 1, neightbourCount);
+                }
+            }
+
+            if (x < windowWidth - 1)
+            {
+                AddNeighbour(x + 1, y, neightbourCount);
+            }
+
+            return neightbourCount;
+        }
+
+        private void AddNeighbour(int x, int y, List<int> neighbourCount)
+        {
+            if (cellArray[x , y ].cellState == Cell.CellState.Grain && cellArray[x, y ].isNotGrown)
+            {
+                neighbourCount.Add(cellArray[x, y ].cellColorId);
+            }
+        }
+
+        private List<int> FurtherMooreNeighbourIdList(int x, int y)
+        {
+            List<int> neightbourCount = new List<int>();
+
+            if (x > 0)
+            {
+                if (y < windowHeight - 1)
+                {
+                    AddNeighbour(x -1, y +1, neightbourCount);
+                }
+
+                if (y > 0)
+                {
+                    AddNeighbour(x - 1, y - 1, neightbourCount);
+                }
+            }
+            
+            if (x < windowWidth - 1)
+            {
+                if (y < windowHeight - 1)
+                {
+                    AddNeighbour(x + 1, y + 1, neightbourCount);
+                }
+
+                if (y > 0)
+                {
+                    AddNeighbour(x + 1, y - 1, neightbourCount);
+                }
+
+            }
+
+            return neightbourCount;
+        }
+
+        private List<int> PropabilityNeighbourhood(int x, int y)
+        {
+            List<int> neightbourCount = new List<int>();
+
+            if (MooreNeighbourIdList(x, y).Count > 5)
+            {
+                return neightbourCount = MooreNeighbourIdList(x, y);
+                
+            }
+            if (VonNeumanNeighbourIdList(x, y).Count > 3)
+            {
+                return neightbourCount = VonNeumanNeighbourIdList(x, y);
+
+            }
+            if(FurtherMooreNeighbourIdList(x,y).Count > 3)
+            {
+                return neightbourCount = FurtherMooreNeighbourIdList(x, y);
+            }
+
+            Random rand = new Random();
+
+            if( rand.Next(1,100) <= propabilityChanceToChange)
+            {
+                return neightbourCount = MooreNeighbourIdList(x, y);
+            }
+            return neightbourCount;
+        }
+
+        private void FindNeighbour()
+        { 
             for (int x = 0; x < windowWidth; x++)
             {
                 for (int y = 0; y < windowHeight; y++)
@@ -247,108 +394,24 @@ namespace MultiScaleWPF
 
                     if (neighbourhoodType == NeighbourhoodType.vonNeuman)
                     {
-                        if(x > 0)
-                        {
-                            if (cellArray[x - 1, y].cellState == Cell.CellState.Grain && cellArray[x - 1, y].isNotGrown)
-                            {
-                                neightbourCount.Add(cellArray[x - 1, y].cellColorId);
-                            }
-                        }
-                        if (y > 0)
-                        {
-                            
-                            if (cellArray[x, y - 1].cellState == Cell.CellState.Grain && cellArray[x , y - 1].isNotGrown)
-                            {
-                                neightbourCount.Add(cellArray[x, y - 1].cellColorId);
-                            }
-                        }
-
-                        if (y < windowHeight - 1 )
-                        {
-                            if (cellArray[x, y + 1].cellState == Cell.CellState.Grain && cellArray[x, y + 1].isNotGrown)
-                            {
-                                neightbourCount.Add(cellArray[x, y + 1].cellColorId);
-                            }
-                        }
-                        if (x < windowWidth - 1)
-                        {
-                            if (cellArray[x + 1, y].cellState == Cell.CellState.Grain && cellArray[x + 1, y].isNotGrown)
-                            {
-                                neightbourCount.Add(cellArray[x + 1, y].cellColorId);
-                            }
-                        }
+                        neightbourCount = VonNeumanNeighbourIdList(x, y);
 
                     }
-                    else // NeighbourhoodType.Moore
+                    else if(neighbourhoodType == NeighbourhoodType.Moore)
                     {
-                        if (x > 0)
-                        {
-                            if (cellArray[x - 1, y].cellState == Cell.CellState.Grain && cellArray[x - 1, y].isNotGrown)
-                            {
-                                neightbourCount.Add(cellArray[x - 1, y].cellColorId);
-                            }
+                        neightbourCount = MooreNeighbourIdList(x,y);
 
-                            if (y < windowHeight - 1)
-                            {
-                                if (cellArray[x - 1, y + 1].cellState == Cell.CellState.Grain && cellArray[x - 1, y + 1].isNotGrown)
-                                {
-                                    neightbourCount.Add(cellArray[x - 1, y + 1].cellColorId);
-                                }
-                            }
-
-                            if (y > 0)
-                            {
-                                if (cellArray[x - 1, y - 1].cellState == Cell.CellState.Grain && cellArray[x - 1, y - 1].isNotGrown)
-                                {
-                                    neightbourCount.Add(cellArray[x - 1, y - 1].cellColorId);
-                                }
-                            }
-
-                        }
-                        if (y > 0)
-                        {
-
-                            if (cellArray[x, y - 1].cellState == Cell.CellState.Grain && cellArray[x, y - 1].isNotGrown)
-                            {
-                                neightbourCount.Add(cellArray[x, y - 1].cellColorId);
-                            }
-
-                            if (x > windowWidth - 1)
-                            {
-                                if (cellArray[x + 1, y - 1].cellState == Cell.CellState.Grain && cellArray[x + 1, y - 1].isNotGrown)
-                                {
-                                    neightbourCount.Add(cellArray[x + 1, y - 1].cellColorId);
-                                }
-                            }
-                        }
-
-                        if (y < windowHeight - 1)
-                        {
-                            if (cellArray[x, y + 1].cellState == Cell.CellState.Grain && cellArray[x, y + 1].isNotGrown)
-                            {
-                                neightbourCount.Add(cellArray[x, y + 1].cellColorId);
-                            }
-
-                            if(x < windowWidth - 1)
-                            {
-                                if (cellArray[x + 1, y + 1].cellState == Cell.CellState.Grain && cellArray[x + 1, y + 1].isNotGrown)
-                                {
-                                    neightbourCount.Add(cellArray[x + 1 , y + 1].cellColorId);
-                                }
-                            }
-                        }
-
-                        if (x < windowWidth - 1)
-                        {
-                            if (cellArray[x + 1, y].cellState == Cell.CellState.Grain && cellArray[x + 1, y].isNotGrown)
-                            {
-                                neightbourCount.Add(cellArray[x + 1, y].cellColorId);
-                            }
-                        }
+                    }
+                    else // NeighbourhoodType.Propability
+                    {
+                        // nie czyta wszystkich grainsow i zostaje tylko 5 jakims cudem
+                        neightbourCount = PropabilityNeighbourhood(x, y);
                     }
 
                     if (neightbourCount.Count == 0)
                         continue;
+
+
 
                     cellArray[x, y].cellState = Cell.CellState.Grain;
                     cellArray[x, y].isNotGrown = false;

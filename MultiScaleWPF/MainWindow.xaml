@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MultiScaleWPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="650" Width="800">
+        Title="MainWindow" Height="700" Width="800">
     <Grid>
         <Grid.RowDefinitions>
 
@@ -60,6 +60,8 @@
                 <TextBox x:Name="inclusionDiameterTextBox" Text="5" TextChanged="inclusionDiameterTextBox_TextChanged" TextAlignment="Center" TextWrapping="Wrap" Width="50"/>
                 <Label x:Name="label8" Content="Inclusion number" HorizontalAlignment="Center"/>
                 <TextBox x:Name="inclusionNumberTextBox" Text="3"  TextAlignment="Center" TextWrapping="Wrap" Width="50" HorizontalAlignment="Center" TextChanged="inclusionNumberTextBox_TextChanged"/>
+                <Label x:Name="label9" Content="Propability in %" HorizontalAlignment="Center"/>
+                <TextBox x:Name="propabilityTextBox" Text="90" TextAlignment="Center" TextWrapping="Wrap" Width="50" HorizontalAlignment="Center" TextChanged="propabilityTextBox_TextChanged"/>
                 <Button x:Name="inclusionAfterEndButton" Content="Add inclusion" Click="inclusionAfterEndButton_Click" IsEnabled="False"/>
                 <Separator/>
                 <StackPanel HorizontalAlignment="Center">
@@ -68,6 +70,7 @@
                 <StackPanel>
                     <RadioButton x:Name="NeumanButton" Content="von Neuman" IsChecked="True" HorizontalAlignment="Left" Checked="NeumanButton_Checked"/>
                     <RadioButton x:Name="MooreButton" Content="Moore"  HorizontalAlignment="Left" Checked="MooreButton_Checked"/>
+                    <RadioButton x:Name="PropabilityButton" Content="Propability"  HorizontalAlignment="Left" Checked="PropabilityButton_Checked"/>
                 </StackPanel>
                 <Separator/>
                 <StackPanel HorizontalAlignment="Center">
