@@ -11,7 +11,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace MultiScaleWPF
@@ -45,43 +44,33 @@ namespace MultiScaleWPF
                 {
                     currentPoint = e.GetPosition(PaintSurface);
 
-                    Rectangle rec = new Rectangle();
-                    Canvas.SetTop(rec, currentPoint.Y);
-                    Canvas.SetLeft(rec, currentPoint.X);
-                    rec.Width = mainFile.inclusionDiameter;
-                    rec.Height = mainFile.inclusionDiameter;
-                    rec.Fill = new SolidColorBrush(Colors.Black);
-                    //for now commented out
-                    //PaintSurface.Children.Add(rec);
-                    if(squareInclusionButton != null && squareInclusionButton.IsChecked == true)//mainFile.inclusionShape == MainFile.InclusionShape.Square)
+
+                    int x = Convert.ToInt32(currentPoint.X);
+                    int y = Convert.ToInt32(currentPoint.Y);
+
+                    if (squareInclusionButton != null && squareInclusionButton.IsChecked == true)
                     {
-                        SquareInclusionsBefore();
+                        SquareInclusionsBefore(x,y);
                     }
                     else
                     {
-                        RoundInclusionBefore();
+                        RoundInclusionBefore(x,y);
                     }
                     //set it to not reset this cell
                     
                     mainFile.RecreateIntArray();
-                    //CreateNewMainFileInstanceDefaultValues();
                     image.Source = DrawImage(mainFile.testArray);
                 }
             }
         }
 
-        private void SquareInclusionsBefore()
+        private void SquareInclusionsBefore(int x,int y)
         {
             for (int num = 0; num < mainFile.inclusionDiameter; num++)
             {
                 if (mainFile.inclusionDiameter == 1)
                 {
-                    //mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellState = Cell.CellState.Inclusion;
-
-                    //mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellColor = System.Drawing.Color.Black;
-
-                    //mainFile.cellArray[Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y)].cellId = Convert.ToInt32(currentPoint.X) + Convert.ToInt32(currentPoint.Y) * mainFile.windowWidth;
-                    PaintPixelAddToCellArray(Convert.ToInt32(currentPoint.X), Convert.ToInt32(currentPoint.Y));
+                    PaintPixelAddToCellArray(x, y);
                 }
                 else
                 {
@@ -90,11 +79,6 @@ namespace MultiScaleWPF
                     {
                         for (int j = Convert.ToInt32(currentPoint.Y) - halfOfInclusionDiameter; j < Convert.ToInt32(currentPoint.Y) + halfOfInclusionDiameter; j++)
                         {
-                        //    mainFile.cellArray[i, j].cellState = Cell.CellState.Inclusion;
-
-                        //    mainFile.cellArray[i, j].cellColor = System.Drawing.Color.Black;
-
-                        //    mainFile.cellArray[i, j].cellId = i + j * mainFile.windowWidth;
                             PaintPixelAddToCellArray(i,j);
                         }
                     }
@@ -102,13 +86,11 @@ namespace MultiScaleWPF
             }
         }
 
-        private void RoundInclusionBefore()
+        private void RoundInclusionBefore(int x, int y)
         {
             int halfOfInclusionDiameter = mainFile.inclusionDiameter / 2;
             const double PI = 3.1415926535;
             double x1, y1;
-            int x = Convert.ToInt32(currentPoint.X);
-            int y = Convert.ToInt32(currentPoint.Y);
             for(int r = halfOfInclusionDiameter; r > 0; r--)
             {
                 for (double angle = 0; angle < 360; angle += 0.1)
@@ -117,11 +99,6 @@ namespace MultiScaleWPF
 
                     y1 = r * Math.Sin(angle * PI / 180);
 
-                    //mainFile.cellArray[x + (int)x1, y + (int)y1].cellState = Cell.CellState.Inclusion;
-
-                    //mainFile.cellArray[x + (int)x1, y + (int)y1].cellColor = System.Drawing.Color.Black;
-
-                    //mainFile.cellArray[x + (int)x1, y + (int)y1].cellId = x + (int)x1 + y + (int)y1 * mainFile.windowWidth;
                     PaintPixelAddToCellArray(x + (int)x1,y +(int)y1);
                 }
             }
@@ -129,6 +106,9 @@ namespace MultiScaleWPF
 
         private void PaintPixelAddToCellArray( int x, int y)
         {
+            if (mainFile.cellArray[x, y].cellState == Cell.CellState.Inclusion)
+                return;
+
             mainFile.cellArray[x, y].cellState = Cell.CellState.Inclusion;
 
             mainFile.cellArray[x, y].cellColor = System.Drawing.Color.Black;
@@ -673,27 +653,22 @@ namespace MultiScaleWPF
                 int j = rand.Next(0, mainFile.windowHeight - 1);
                 if (mainFile.cellArray[i, j].isOnBorder && mainFile.cellArray[i, j].cellState != Cell.CellState.Inclusion)
                 {
-                    //currentPoint = e.GetPosition(PaintSurface);
-
-                    Rectangle rec = new Rectangle();
-                    Canvas.SetTop(rec, j);
-                    Canvas.SetLeft(rec, i);
-                    rec.Width = mainFile.inclusionDiameter;
-                    rec.Height = mainFile.inclusionDiameter;
-                    rec.Fill = new SolidColorBrush(Colors.Black);
-                    PaintSurface.Children.Add(rec);
-
-                    //set it to not reset this cell
-                    mainFile.cellArray[i, j].cellState = Cell.CellState.Inclusion;
-
-                    mainFile.cellArray[i, j].cellColor = System.Drawing.Color.Black;// Color.FromRgb(0,0,0);
-                                                                                    //and add status for that
-                    mainFile.cellArray[i, j].cellId = i + j * mainFile.windowWidth;
-                    //paint inclusion
+                    
+                    if (squareInclusionButton != null && squareInclusionButton.IsChecked == true)
+                    {
+                        SquareInclusionsBefore(i,j);
+                    }
+                    else
+                    {
+                        RoundInclusionBefore(i,j);
+                    }
+                    
                     placedInclusionNumber++;
                 }
             }
-            
+
+            mainFile.RecreateIntArray();
+            image.Source = DrawImage(mainFile.testArray);
         }
     }
 }
