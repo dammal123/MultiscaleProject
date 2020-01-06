@@ -17,7 +17,6 @@ namespace MultiScaleWPF
         public int windowHeight { get; set; }
         public int windowWidth { get; set; }
         public int borderWidthPx { get; set; }//future development
-        public BoundaryCondition boundaryCondition { get; set; }
         public NeighbourhoodType neighbourhoodType { get; set; }
         public OperationType operationType { get; set; }
         public InclusionShape inclusionShape { get; set; }

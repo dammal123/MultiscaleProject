@@ -27,6 +27,7 @@ namespace MultiScaleWPF
         private bool uiNotBlockedFlag = false;
         private bool workFlowEnded = false;
         private bool cleanSubstructures = false;
+        private bool borderRemoveFlag = true;
 
         public MainWindow()
         {
@@ -57,8 +58,7 @@ namespace MultiScaleWPF
                     {
                         RoundInclusionBefore(x,y);
                     }
-                    //set it to not reset this cell
-                    
+
                     mainFile.RecreateIntArray();
                     image.Source = DrawImage(mainFile.testArray);
                 }
@@ -114,21 +114,6 @@ namespace MultiScaleWPF
             mainFile.colorListDict = new Dictionary<int, System.Drawing.Color>();
             mainFile.colorListDict.Add(substructureNumberId, mainFile.cellArray[x, y].cellColor);
 
-            // do tego momentu jest ok bo znajduje kolor potrzebny i dodaje go do listy
-            //for (int i = 0; i < mainFile.windowWidth; i++)
-            //{
-            //    for (int j = 0; j < mainFile.windowHeight; j++)
-            //    {
-
-            //        //dodac mozliwosc zapisu pewnego koloru
-            //        if (mainFile.dontGenerateGrainsFlag && mainFile.cellArray[i, j].cellState == Enums.CellState.Inclusion)
-            //            continue;
-            //        if (cleanSubstructures == false && (mainFile.cellArray[i, j].cellState == Enums.CellState.Substructure || mainFile.cellArray[i, j].cellState == Enums.CellState.DualPhase))
-            //            continue;
-            //        mainFile.cellArray[i, j] = new Cell();
-            //        mainFile.cellArray[i, j].cellId = i + j * mainFile.windowWidth;
-            //    }
-            //}
             InitializeVariablesForMainFile();
             mainFile.RecreateIntArray();
 
@@ -201,18 +186,14 @@ namespace MultiScaleWPF
 
             mainFile.cellArray[x, y].cellColor = System.Drawing.Color.Black;
 
+            mainFile.cellArray[x, y].cellColorId = 102;
+
             mainFile.cellArray[x, y].cellId = x  + y * mainFile.windowWidth;
         }
 
         private void startButton_Click(object sender, RoutedEventArgs e)
         {
             wtoken = new CancellationTokenSource();
-
-            //possible to DELETE IT FROM HERE
-
-            //InitializeVariablesForMainFile();
-
-            //
 
             cleanSubstructures = false;
 
@@ -247,6 +228,12 @@ namespace MultiScaleWPF
                             inclusionAfterEndButton.IsEnabled = true;
 
                         }), DispatcherPriority.ContextIdle);
+
+                        Dispatcher.Invoke(new Action(() => {
+
+                            addBorderButton.IsEnabled = true;
+
+                        }), DispatcherPriority.ContextIdle);
                     }
                     await Task.Delay(100, wtoken.Token); // <- await with cancellation
                 }
@@ -260,7 +247,6 @@ namespace MultiScaleWPF
 
             WriteableBitmap writableImg = new WriteableBitmap(resX, resY, 96, 96, PixelFormats.Bgr32, null);
 
-            //lock the buffer
             writableImg.Lock();
 
             for (int i = 0; i < resX; i++)
@@ -268,33 +254,27 @@ namespace MultiScaleWPF
                 for (int j = 0; j < resY; j++)
                 {
                     IntPtr backbuffer = writableImg.BackBuffer;
-                    //the buffer is a monodimensionnal array...
+
                     backbuffer += j * writableImg.BackBufferStride;
                     backbuffer += i * 4;
                     System.Runtime.InteropServices.Marshal.WriteInt32(backbuffer, pixels[i, j]);
                 }
             }
 
-            //specify the area to update
             writableImg.AddDirtyRect(new Int32Rect(0, 0, resX, resY));
-            //release the buffer and show the image
+
             writableImg.Unlock();
 
             return writableImg;
         }
         private void StopMethod()
         {
-            // CancellationTokenSource implements IDisposable.
             if (wtoken != null)
                 using (wtoken)
                 {
-                    // Cancel.  This will cancel the task.
                     wtoken.Cancel();
                 }
 
-            // Set everything to null, since the references
-            // are on the class level and keeping them around
-            // is holding onto invalid state.
             uiNotBlockedFlag = true;
             //Dispatcher.Invoke(new Action(() =>
             //{
@@ -322,6 +302,31 @@ namespace MultiScaleWPF
             InitializeVariablesForMainFile();
             image.Source = DrawImage(mainFile.testArray);
         }
+
+        private void AddBorder()
+        {
+            mainFile.FindBorderCells();
+
+            //dodac branie pod uwage szerokosci borderu
+            //while borderwidthpx> int i
+            //{
+            for (int i = 0; i < mainFile.windowWidth; i++)
+            {
+                for (int j = 0; j < mainFile.windowHeight; j++)
+                {
+                    if (mainFile.cellArray[i, j].isOnBorder) {
+                        mainFile.cellArray[i, j].cellState = Enums.CellState.Border;
+
+                        mainFile.cellArray[i, j].cellColor = System.Drawing.Color.Black;
+
+                        mainFile.cellArray[i, j].cellColorId = 103;
+                    }
+                }
+            }
+            mainFile.RecreateIntArray();
+            //}
+        }
+
         private int TryParseText(string text, int defaultValue)
         {
             if (Int32.TryParse(text, out int returnedValue))
@@ -353,7 +358,9 @@ namespace MultiScaleWPF
                 case "propabilityTextBox":
                     value = TryParseText(propabilityTextBox.Text, 90);
                     break;
-                    
+                case "borderWidth":
+                    value = TryParseText(borderWidth.Text, 3);
+                    break;
             }
             return value;
         }
@@ -384,6 +391,9 @@ namespace MultiScaleWPF
                     if(workFlowEnded && cleanSubstructures == false && (mainFile.cellArray[i, j].cellState == Enums.CellState.Substructure || mainFile.cellArray[i, j].cellState == Enums.CellState.DualPhase))
                         continue;
 
+                    if (workFlowEnded && borderRemoveFlag == false && mainFile.cellArray[i, j].cellState == Enums.CellState.Border)
+                        continue;
+
                     mainFile.cellArray[i, j] = new Cell();
                     mainFile.cellArray[i, j].cellId = i + j * mainFile.windowWidth;
                 }
@@ -397,7 +407,7 @@ namespace MultiScaleWPF
             mainFile.windowWidth = GetUiValue("widthTextBox");
             mainFile.inclusionDiameter = GetUiValue("inclusionDiameterTextBox");
             mainFile.inclusionNumber = GetUiValue("inclusionNumberTextBox");
-            mainFile.borderWidthPx = 5; //future development
+            mainFile.borderWidthPx = GetUiValue("borderWidth"); 
 
             mainFile.propabilityChanceToChange = GetUiValue("propabilityTextBox"); ;//90% na zmiane
             mainFile.dontGenerateGrainsFlag = false;
@@ -409,11 +419,6 @@ namespace MultiScaleWPF
 
                 mainFile.colorListDict = new Dictionary<int, System.Drawing.Color>();
             }
-
-            if (absorbingButton.IsChecked.HasValue && absorbingButton.IsChecked == true)
-                mainFile.boundaryCondition = Enums.BoundaryCondition.absorbing;
-            else
-                mainFile.boundaryCondition = Enums.BoundaryCondition.periodic;
 
             if (NeumanButton.IsChecked.HasValue && NeumanButton.IsChecked == true)
                 mainFile.neighbourhoodType = Enums.NeighbourhoodType.vonNeuman;
@@ -444,13 +449,9 @@ namespace MultiScaleWPF
             NeumanButton.IsEnabled = boolSwitchValue;
             MooreButton.IsEnabled = boolSwitchValue;
 
-            absorbingButton.IsEnabled = boolSwitchValue;
-            periodicButton.IsEnabled = boolSwitchValue;
-
             squareInclusionButton.IsEnabled = boolSwitchValue;
             CircleInclusionButton.IsEnabled = boolSwitchValue;
         }
-
 
         private void NeumanButton_Checked(object sender, RoutedEventArgs e)
         {
@@ -463,16 +464,6 @@ namespace MultiScaleWPF
                 mainFile.neighbourhoodType = Enums.NeighbourhoodType.Moore;
         }
 
-        private void absorbingButton_Checked(object sender, RoutedEventArgs e)
-        {
-            if (uiNotBlockedFlag)
-                mainFile.boundaryCondition = Enums.BoundaryCondition.absorbing;
-        }
-        private void periodicButton_Checked(object sender, RoutedEventArgs e)
-        {
-            if (uiNotBlockedFlag)
-                mainFile.boundaryCondition = Enums.BoundaryCondition.periodic;
-        }
         private void numberGrainsTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (uiNotBlockedFlag)
@@ -504,7 +495,6 @@ namespace MultiScaleWPF
                 }
                 else
                     mainFile.inclusionDiameter = 5;
-
             }
         }
 
@@ -568,7 +558,6 @@ namespace MultiScaleWPF
                     mainFile.RecreateIntArray();
                     image.Source = DrawImage(mainFile.testArray);
                 }
-
             }
         }
         private void bitmapImport_Click(object sender, RoutedEventArgs e)
@@ -653,6 +642,45 @@ namespace MultiScaleWPF
             }
         }
 
+        private void color_details_Click(object sender, RoutedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+            {
+                StringBuilder fileContent = new StringBuilder();
+
+                fileContent.AppendLine("Image width and height");
+                fileContent.AppendLine(String.Format("{0} {1}", mainFile.windowWidth, mainFile.windowHeight));
+                fileContent.AppendLine("ID - Size - %");
+
+                foreach (int colorId in mainFile.colorListDict.Keys)
+                {
+                    
+                    int pixelNumberForColor = 0;
+                    for (int j = 0; j < mainFile.windowHeight; j++)
+                    {
+                        for (int i = 0; i < mainFile.windowWidth; i++)
+                        {
+                            if (mainFile.cellArray[i, j].cellColorId == colorId)
+                                pixelNumberForColor++;
+                        }
+                    }
+
+                    double colourPercentage = (double)pixelNumberForColor * 100/((double)mainFile.windowWidth*(double)mainFile.windowHeight);
+
+                    string linContent = String.Format("{0} - {1} - {2}%", colorId, pixelNumberForColor, colourPercentage);
+                    fileContent.AppendLine(linContent);
+                }
+
+                SaveFileDialog dialog = new SaveFileDialog();
+                dialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                bool? dialogBool = dialog.ShowDialog();
+                if (dialogBool != null && dialogBool == true && dialog.CheckPathExists)
+                {
+                    System.IO.File.WriteAllText(dialog.FileName, fileContent.ToString());
+                }
+            }
+        }
+        
         private void widthTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (uiNotBlockedFlag)
@@ -815,6 +843,40 @@ namespace MultiScaleWPF
         {
             if (uiNotBlockedFlag)
                 mainFile.operationType = Enums.OperationType.substructure;
+        }
+
+        private void borderWidth_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+            {
+                if (Int32.TryParse(borderWidth.Text, out int parseResult))
+                {
+                    if (parseResult > 10)
+                        parseResult = 10;
+                    if (parseResult < 1)
+                        parseResult = 1;
+                    mainFile.borderWidthPx = parseResult;
+                }
+                else
+                    mainFile.borderWidthPx = 3;
+
+            }
+        }
+
+        private void borderCheckbox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+            {
+                if (borderCheckbox.IsChecked != null && borderCheckbox.IsChecked == true)
+                    borderRemoveFlag = true;
+                else if (borderCheckbox.IsChecked != null && borderCheckbox.IsChecked == false)
+                    borderRemoveFlag = false;
+            }
+        }
+
+        private void addBorderButton_Click(object sender, RoutedEventArgs e)
+        {
+            AddBorder();
         }
     }
 }

@@ -12,11 +12,6 @@ namespace MultiScaleWPF
             Moore,
             Propability
         }
-        public enum BoundaryCondition
-        {
-            absorbing,
-            periodic
-        }
         public enum OperationType
         {
             substructure,
@@ -33,7 +28,8 @@ namespace MultiScaleWPF
             Grain,
             Empty,
             Substructure,
-            DualPhase
+            DualPhase,
+            Border
         }
     }
 }

@@ -33,6 +33,10 @@
                     <Separator/>
                     <MenuItem Name="bitmap_export" Header="bitmap" Click="bitmapExport_Click"/>
                 </MenuItem>
+                <Separator/>
+                <MenuItem Name="Details" Header="Color details">
+                    <MenuItem Name="color_details" Header="Detailed color report" Click="color_details_Click"/>
+                </MenuItem>
             </MenuItem>
         </Menu>
 
@@ -62,7 +66,11 @@
                 <TextBox x:Name="inclusionNumberTextBox" Text="3"  TextAlignment="Center" TextWrapping="Wrap" Width="50" HorizontalAlignment="Center" TextChanged="inclusionNumberTextBox_TextChanged"/>
                 <Label x:Name="label9" Content="Propability in %" HorizontalAlignment="Center"/>
                 <TextBox x:Name="propabilityTextBox" Text="90" TextAlignment="Center" TextWrapping="Wrap" Width="50" HorizontalAlignment="Center" TextChanged="propabilityTextBox_TextChanged"/>
+                <Label x:Name="label3" Content="Border width px" HorizontalAlignment="Center"/>
+                <TextBox x:Name="borderWidth" Text="3" TextAlignment="Center" TextWrapping="Wrap" Width="50" HorizontalAlignment="Center" TextChanged="borderWidth_TextChanged"/>
+                <CheckBox x:Name="borderCheckbox" Content="Remove borders" HorizontalAlignment="Center" IsChecked="True" Checked="borderCheckbox_Checked"/>
                 <Button x:Name="inclusionAfterEndButton" Content="Add inclusion" Click="inclusionAfterEndButton_Click" IsEnabled="False"/>
+                <Button x:Name="addBorderButton" Content="Add borders" IsEnabled="False" Click="addBorderButton_Click"/>
                 <Separator/>
                 <StackPanel HorizontalAlignment="Center">
                     <Label x:Name="label2" Content="Neighbourhood type"  HorizontalAlignment="Center"/>
@@ -71,14 +79,6 @@
                     <RadioButton x:Name="NeumanButton" Content="von Neuman" IsChecked="True" HorizontalAlignment="Left" Checked="NeumanButton_Checked"/>
                     <RadioButton x:Name="MooreButton" Content="Moore"  HorizontalAlignment="Left" Checked="MooreButton_Checked"/>
                     <RadioButton x:Name="PropabilityButton" Content="Propability"  HorizontalAlignment="Left" Checked="PropabilityButton_Checked"/>
-                </StackPanel>
-                <Separator/>
-                <StackPanel HorizontalAlignment="Center">
-                    <Label x:Name="label3" Content="Boundary conditions"  HorizontalAlignment="Center"/>
-                </StackPanel>
-                <StackPanel>
-                    <RadioButton x:Name="absorbingButton" Content="Absorbing" IsChecked="True"  Checked="absorbingButton_Checked"  HorizontalAlignment="Left"/>
-                    <RadioButton x:Name="periodicButton" Content="Periodic"  HorizontalAlignment="Left" Checked="periodicButton_Checked"/>
                 </StackPanel>
                 <Separator/>
                 <StackPanel HorizontalAlignment="Center">
@@ -99,7 +99,7 @@
                 <Button x:Name="startButton" Content="Start" Width="50" HorizontalAlignment="Center" Click="startButton_Click"/>
                 <Button x:Name="stopButton" Content="Stop" Width="50" HorizontalAlignment="Center" Click="stopButton_Click"/>
                 <Button x:Name="resetButton" Content="Reset" Width="50" HorizontalAlignment="Center" Click="resetButton_Click"/>
-                
+
             </StackPanel>
             <Canvas Name="PaintSurface" MouseDown="Canvas_MouseDown_1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Canvas.Background>
