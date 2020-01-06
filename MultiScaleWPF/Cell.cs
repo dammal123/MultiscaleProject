@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static MultiScaleWPF.Enums;
 
 namespace MultiScaleWPF
 {
@@ -17,12 +18,7 @@ namespace MultiScaleWPF
         public CellState cellState { get; set; }
         public bool isNotGrown { get; set; }
         public bool isOnBorder { get; set; }
-        public enum CellState
-        {
-            Inclusion,
-            Grain,
-            Empty
-        }
+        
         public Cell()
         {
             this.cellColorId = 0;
@@ -41,6 +37,10 @@ namespace MultiScaleWPF
         {
             Random r = new Random();
             this.cellColor = Color.FromArgb(r.Next(249) + 1, r.Next(249) + 1, r.Next(249) + 1);
+            while (this.cellColor == Color.FromArgb(255, 105, 180))//dualphase color
+            {
+                this.cellColor = Color.FromArgb(r.Next(249) + 1, r.Next(249) + 1, r.Next(249) + 1);
+            }
             return this.cellColor;
         }
     }
