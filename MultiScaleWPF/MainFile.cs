@@ -16,7 +16,7 @@ namespace MultiScaleWPF
         public int inclusionNumber { get; set; }
         public int windowHeight { get; set; }
         public int windowWidth { get; set; }
-        public int borderWidthPx { get; set; }
+        public int borderWidthPx { get; set; }//future development
         public BoundaryCondition boundaryCondition { get; set; }
         public NeighbourhoodType neighbourhoodType { get; set; }
         public OperationType operationType { get; set; }
@@ -26,7 +26,7 @@ namespace MultiScaleWPF
 
         public int propabilityChanceToChange { get; set; }
 
-        //MainWindow mainwindow;
+        
         public Cell[,] cellArray;
         public Int32[,] testArray;
 
@@ -69,7 +69,7 @@ namespace MultiScaleWPF
             for (int i = 1; i <= grainNumber; i++)
             {
                 Random r = new Random();
-                //maybe better option?
+
                 while (true)
                 {
                     int x = r.Next(windowWidth - 1);
@@ -130,7 +130,6 @@ namespace MultiScaleWPF
 
             //5th border
 
-            //next to think reset stop export import + GUI
         }
 
         private void CleanLastColors()
