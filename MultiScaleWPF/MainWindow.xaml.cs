@@ -187,6 +187,8 @@ namespace MultiScaleWPF
             mainFile.cellArray[x, y].cellColor = System.Drawing.Color.Black;
 
             mainFile.cellArray[x, y].cellColorId = 102;
+            if(mainFile.colorListDict.ContainsKey(mainFile.cellArray[x, y].cellColorId) == false)
+                mainFile.colorListDict.Add(mainFile.cellArray[x, y].cellColorId, System.Drawing.Color.Black);
 
             mainFile.cellArray[x, y].cellId = x  + y * mainFile.windowWidth;
         }
@@ -204,11 +206,7 @@ namespace MultiScaleWPF
                     mainFile.AppWorkflow();
                     mainFile.dontGenerateGrainsFlag = true;
                     uiNotBlockedFlag = false;
-                    //Dispatcher.Invoke(new Action(() => {
 
-                    //    IsUIBlockedReadonly(uiNotBlockedFlag);
-
-                    //}), DispatcherPriority.ContextIdle);
 
                     Dispatcher.Invoke(new Action(() => {
 
@@ -276,11 +274,7 @@ namespace MultiScaleWPF
                 }
 
             uiNotBlockedFlag = true;
-            //Dispatcher.Invoke(new Action(() =>
-            //{
-            //    IsUIBlockedReadonly(uiNotBlockedFlag);
 
-            //}), DispatcherPriority.ContextIdle);
             wtoken = null;
             task = null;
             mainFile.stopWorkFlowFlag = false;
@@ -295,36 +289,47 @@ namespace MultiScaleWPF
             StopMethod();
             cleanSubstructures = true;
             uiNotBlockedFlag = true;
-            //Dispatcher.Invoke(new Action(() => {
-            //    IsUIBlockedReadonly(uiNotBlockedFlag);
-            //}), DispatcherPriority.ContextIdle);
+
+            mainFile.stopWorkFlowFlag = false;
 
             InitializeVariablesForMainFile();
+            mainFile.RecreateIntArray();
+            workFlowEnded = false;
             image.Source = DrawImage(mainFile.testArray);
         }
 
         private void AddBorder()
         {
-            mainFile.FindBorderCells();
-
-            //dodac branie pod uwage szerokosci borderu
-            //while borderwidthpx> int i
-            //{
-            for (int i = 0; i < mainFile.windowWidth; i++)
+            
+            int borderSteps = mainFile.borderWidthPx - 3;
+            
+            do
             {
-                for (int j = 0; j < mainFile.windowHeight; j++)
+                mainFile.FindBorderCells();
+                for (int i = 0; i < mainFile.windowWidth; i++)
                 {
-                    if (mainFile.cellArray[i, j].isOnBorder) {
-                        mainFile.cellArray[i, j].cellState = Enums.CellState.Border;
+                    for (int j = 0; j < mainFile.windowHeight; j++)
+                    {
+                        if (mainFile.cellArray[i, j].isOnBorder)
+                        {
+                            mainFile.cellArray[i, j].cellState = Enums.CellState.Border;
 
-                        mainFile.cellArray[i, j].cellColor = System.Drawing.Color.Black;
+                            mainFile.cellArray[i, j].cellColor = System.Drawing.Color.Black;
 
-                        mainFile.cellArray[i, j].cellColorId = 103;
+                            mainFile.cellArray[i, j].cellColorId = 103;
+                            if(mainFile.colorListDict.ContainsKey(mainFile.cellArray[i, j].cellColorId) == false)
+                                mainFile.colorListDict.Add(mainFile.cellArray[i, j].cellColorId, System.Drawing.Color.Black);
+
+                            mainFile.cellArray[i, j].isOnBorder = true;
+                        }
                     }
                 }
-            }
+
+                borderSteps--;
+            } while (borderSteps > 0);
+
             mainFile.RecreateIntArray();
-            //}
+            image.Source = DrawImage(mainFile.testArray);
         }
 
         private int TryParseText(string text, int defaultValue)
@@ -383,11 +388,9 @@ namespace MultiScaleWPF
                 for (int j = 0; j < mainFile.windowHeight; j++)
                 {
 
-                    //dodac mozliwosc zapisu pewnego koloru
                     if (mainFile.dontGenerateGrainsFlag && mainFile.cellArray[i, j].cellState == Enums.CellState.Inclusion)
                         continue;
 
-                    //finished, if no reseted, pixel is in substructure state or dualphase
                     if(workFlowEnded && cleanSubstructures == false && (mainFile.cellArray[i, j].cellState == Enums.CellState.Substructure || mainFile.cellArray[i, j].cellState == Enums.CellState.DualPhase))
                         continue;
 
@@ -575,7 +578,6 @@ namespace MultiScaleWPF
                 bool? dialogBool = openFileDialog.ShowDialog();
                 if (dialogBool != null && dialogBool == true && openFileDialog.CheckFileExists)
                 {  
-                    //if (openFileDialog.ShowDialog().ToString().Equals("OK"))
                     
                     System.Drawing.Bitmap img = new System.Drawing.Bitmap(openFileDialog.FileName);
                     for (int x = 0; x < img.Width; x++)
@@ -853,8 +855,8 @@ namespace MultiScaleWPF
                 {
                     if (parseResult > 10)
                         parseResult = 10;
-                    if (parseResult < 1)
-                        parseResult = 1;
+                    if (parseResult < 3)
+                        parseResult = 3;
                     mainFile.borderWidthPx = parseResult;
                 }
                 else
@@ -867,13 +869,16 @@ namespace MultiScaleWPF
         {
             if (uiNotBlockedFlag)
             {
-                if (borderCheckbox.IsChecked != null && borderCheckbox.IsChecked == true)
                     borderRemoveFlag = true;
-                else if (borderCheckbox.IsChecked != null && borderCheckbox.IsChecked == false)
+            }
+        }
+        private void borderCheckboxUnchecked(object sender, RoutedEventArgs e)
+        {
+            if (uiNotBlockedFlag)
+            {
                     borderRemoveFlag = false;
             }
         }
-
         private void addBorderButton_Click(object sender, RoutedEventArgs e)
         {
             AddBorder();

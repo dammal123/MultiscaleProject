@@ -23,6 +23,7 @@ namespace MultiScaleWPF
         public bool dontGenerateGrainsFlag { get; set; }
         public bool stopWorkFlowFlag { get; set; }
 
+        Random rand = new Random();
         public int propabilityChanceToChange { get; set; }
 
         
@@ -149,7 +150,7 @@ namespace MultiScaleWPF
                 for (int y = 0; y < windowHeight; y++)
                 {
 
-                    if (cellArray[x, y].cellState == Enums.CellState.Empty)
+                    if (cellArray[x, y].cellState == Enums.CellState.Empty || cellArray[x, y].cellState == Enums.CellState.Inclusion)
                         continue;
 
                     if(cellArray[x, y].cellState == Enums.CellState.Grain)
@@ -158,14 +159,14 @@ namespace MultiScaleWPF
 
                         if (x > 0)
                         {
-                            if (cellArray[x - 1, y].cellState == Enums.CellState.Grain && cellArray[x - 1, y].cellColorId != cellArray[x, y].cellColorId)
+                            if ((cellArray[x - 1, y].cellState == Enums.CellState.Grain || cellArray[x - 1, y].cellState == Enums.CellState.Border) && cellArray[x - 1, y].cellColorId != cellArray[x, y].cellColorId)
                             {
                                 borderNeightbourCount++;
                             }
 
                             if (y < windowHeight - 1)
                             {
-                                if (cellArray[x - 1, y + 1].cellState == Enums.CellState.Grain && cellArray[x - 1, y + 1].cellColorId != cellArray[x, y].cellColorId)
+                                if ((cellArray[x - 1, y + 1].cellState == Enums.CellState.Grain || cellArray[x - 1, y + 1].cellState == Enums.CellState.Border) && cellArray[x - 1, y + 1].cellColorId != cellArray[x, y].cellColorId)
                                 {
                                     borderNeightbourCount++;
                                 }
@@ -173,7 +174,7 @@ namespace MultiScaleWPF
 
                             if (y > 0)
                             {
-                                if (cellArray[x - 1, y - 1].cellState == Enums.CellState.Grain && cellArray[x - 1, y - 1].cellColorId != cellArray[x, y].cellColorId)
+                                if ((cellArray[x - 1, y - 1].cellState == Enums.CellState.Grain || cellArray[x - 1, y - 1].cellState == Enums.CellState.Border) && cellArray[x - 1, y - 1].cellColorId != cellArray[x, y].cellColorId)
                                 {
                                     borderNeightbourCount++;
                                 }
@@ -183,14 +184,14 @@ namespace MultiScaleWPF
                         if (y > 0)
                         {
 
-                            if (cellArray[x, y - 1].cellState == Enums.CellState.Grain && cellArray[x, y - 1].cellColorId != cellArray[x, y].cellColorId)
+                            if ((cellArray[x, y - 1].cellState == Enums.CellState.Grain || cellArray[x, y - 1].cellState == Enums.CellState.Border) && cellArray[x, y - 1].cellColorId != cellArray[x, y].cellColorId)
                             {
                                 borderNeightbourCount++;
                             }
 
                             if (x > windowWidth - 1)
                             {
-                                if (cellArray[x + 1, y - 1].cellState == Enums.CellState.Grain && cellArray[x + 1, y - 1].cellColorId != cellArray[x, y].cellColorId)
+                                if ((cellArray[x + 1, y - 1].cellState == Enums.CellState.Grain || cellArray[x + 1, y - 1].cellState == Enums.CellState.Border) && cellArray[x + 1, y - 1].cellColorId != cellArray[x, y].cellColorId)
                                 {
                                     borderNeightbourCount++;
                                 }
@@ -199,14 +200,14 @@ namespace MultiScaleWPF
 
                         if (y < windowHeight - 1)
                         {
-                            if (cellArray[x, y + 1].cellState == Enums.CellState.Grain && cellArray[x, y + 1].cellColorId != cellArray[x, y].cellColorId)
+                            if ((cellArray[x, y + 1].cellState == Enums.CellState.Grain || cellArray[x, y + 1].cellState == Enums.CellState.Border) && cellArray[x, y + 1].cellColorId != cellArray[x, y].cellColorId)
                             {
                                 borderNeightbourCount++;
                             }
 
                             if (x < windowWidth - 1)
                             {
-                                if (cellArray[x + 1, y + 1].cellState == Enums.CellState.Grain && cellArray[x + 1, y + 1].cellColorId != cellArray[x, y].cellColorId)
+                                if ((cellArray[x + 1, y + 1].cellState == Enums.CellState.Grain || cellArray[x + 1, y + 1].cellState == Enums.CellState.Border) && cellArray[x + 1, y + 1].cellColorId != cellArray[x, y].cellColorId)
                                 {
                                     borderNeightbourCount++;
                                 }
@@ -215,7 +216,7 @@ namespace MultiScaleWPF
 
                         if (x < windowWidth - 1)
                         {
-                            if (cellArray[x + 1, y].cellState == Enums.CellState.Grain && cellArray[x + 1, y].cellColorId != cellArray[x, y].cellColorId)
+                            if ((cellArray[x + 1, y].cellState == Enums.CellState.Grain || cellArray[x + 1, y].cellState == Enums.CellState.Border) && cellArray[x + 1, y].cellColorId != cellArray[x, y].cellColorId)
                             {
                                 borderNeightbourCount++;
                             }
@@ -351,22 +352,21 @@ namespace MultiScaleWPF
         {
             List<int> neightbourCount = new List<int>();
 
-            if (MooreNeighbourIdList(x, y).Count > 5)
+            if (MooreNeighbourIdList(x, y).Count >= 5)
             {
                 return neightbourCount = MooreNeighbourIdList(x, y);
                 
             }
-            if (VonNeumanNeighbourIdList(x, y).Count > 3)
+            if (VonNeumanNeighbourIdList(x, y).Count >= 3)
             {
                 return neightbourCount = VonNeumanNeighbourIdList(x, y);
 
             }
-            if(FurtherMooreNeighbourIdList(x,y).Count > 3)
+            if(FurtherMooreNeighbourIdList(x,y).Count >= 3)
             {
                 return neightbourCount = FurtherMooreNeighbourIdList(x, y);
             }
 
-            Random rand = new Random();
 
             if( rand.Next(1,100) <= propabilityChanceToChange)
             {

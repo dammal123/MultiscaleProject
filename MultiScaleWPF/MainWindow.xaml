@@ -68,7 +68,7 @@
                 <TextBox x:Name="propabilityTextBox" Text="90" TextAlignment="Center" TextWrapping="Wrap" Width="50" HorizontalAlignment="Center" TextChanged="propabilityTextBox_TextChanged"/>
                 <Label x:Name="label3" Content="Border width px" HorizontalAlignment="Center"/>
                 <TextBox x:Name="borderWidth" Text="3" TextAlignment="Center" TextWrapping="Wrap" Width="50" HorizontalAlignment="Center" TextChanged="borderWidth_TextChanged"/>
-                <CheckBox x:Name="borderCheckbox" Content="Remove borders" HorizontalAlignment="Center" IsChecked="True" Checked="borderCheckbox_Checked"/>
+                <CheckBox x:Name="borderCheckbox" Content="Remove borders" HorizontalAlignment="Center" Unchecked="borderCheckboxUnchecked" IsChecked="True" Checked="borderCheckbox_Checked"/>
                 <Button x:Name="inclusionAfterEndButton" Content="Add inclusion" Click="inclusionAfterEndButton_Click" IsEnabled="False"/>
                 <Button x:Name="addBorderButton" Content="Add borders" IsEnabled="False" Click="addBorderButton_Click"/>
                 <Separator/>
