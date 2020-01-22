@@ -28,6 +28,8 @@ namespace MultiScaleWPF
         private bool workFlowEnded = false;
         private bool cleanSubstructures = false;
         private bool borderRemoveFlag = true;
+        private bool afterSubstructure = false;
+        private int substrucutreCount = 0;
 
         public MainWindow()
         {
@@ -111,13 +113,15 @@ namespace MultiScaleWPF
                     }
                 }
             }
-            mainFile.colorListDict = new Dictionary<int, System.Drawing.Color>();
-            mainFile.colorListDict.Add(substructureNumberId, mainFile.cellArray[x, y].cellColor);
+            //mainFile.colorListDict = new Dictionary<int, System.Drawing.Color>();
+            mainFile.colorListDict.Add(substructureNumberId + substrucutreCount, mainFile.cellArray[x, y].cellColor);
+            substrucutreCount += 10;
+            afterSubstructure = true;
 
-            InitializeVariablesForMainFile();
-            mainFile.RecreateIntArray();
+            //InitializeVariablesForMainFile();
+            //mainFile.RecreateIntArray();
 
-            mainFile.stopWorkFlowFlag = false; uiNotBlockedFlag = true; workFlowEnded = false; mainFile.dontGenerateGrainsFlag = false;
+            //mainFile.stopWorkFlowFlag = false; uiNotBlockedFlag = true; workFlowEnded = false; mainFile.dontGenerateGrainsFlag = false;
         }
 
         private void SquareInclusionsBefore(int x,int y, bool onClick)
@@ -203,6 +207,19 @@ namespace MultiScaleWPF
             {
                 while (true)
                 {
+                    if (afterSubstructure)
+                    {
+                        afterSubstructure = false;
+                       mainFile.colorListDict = new Dictionary<int, System.Drawing.Color>();
+                        Dispatcher.Invoke(new Action(() => {
+                            InitializeVariablesForMainFile();
+
+                        }), DispatcherPriority.ContextIdle);
+                        mainFile.RecreateIntArray();
+                        mainFile.stopWorkFlowFlag = false; uiNotBlockedFlag = true; workFlowEnded = false; mainFile.dontGenerateGrainsFlag = false;
+
+                    }
+
                     mainFile.AppWorkflow();
                     mainFile.dontGenerateGrainsFlag = true;
                     uiNotBlockedFlag = false;
