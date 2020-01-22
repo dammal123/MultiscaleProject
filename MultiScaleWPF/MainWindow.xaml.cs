@@ -821,16 +821,16 @@ namespace MultiScaleWPF
         {
             if (uiNotBlockedFlag)
             {
-                if (Int32.TryParse(inclusionNumberTextBox.Text, out int parseResult))
+                if (Int32.TryParse(propabilityTextBox.Text, out int parseResult))
                 {
                     if (parseResult > 100)
                         parseResult = 90; 
                     if (parseResult < 10)
                         parseResult = 10;
-                    mainFile.inclusionNumber = parseResult;
+                    mainFile.propabilityChanceToChange = parseResult;
                 }
                 else
-                    mainFile.inclusionNumber = 90;
+                    mainFile.propabilityChanceToChange = 90;
 
             }
         }
