@@ -23,7 +23,8 @@ namespace MultiScaleWPF
         public bool dontGenerateGrainsFlag { get; set; }
         public bool stopWorkFlowFlag { get; set; }
 
-        Random rand = new Random();
+        private static readonly Random rand = new Random();
+        private static readonly object syncLock = new object();
         public int propabilityChanceToChange { get; set; }
 
         
@@ -367,10 +368,12 @@ namespace MultiScaleWPF
                 return neightbourCount = FurtherMooreNeighbourIdList(x, y);
             }
 
-
-            if( rand.Next(1,100) <= propabilityChanceToChange)
+            lock (syncLock)
             {
-                return neightbourCount = MooreNeighbourIdList(x, y);
+                if (rand.Next(1, 100) <= propabilityChanceToChange)
+                {
+                    return neightbourCount = MooreNeighbourIdList(x, y);
+                }
             }
             return neightbourCount;
         }
